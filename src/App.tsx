@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import { supabase } from "./services/supabase";
+
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -21,25 +23,10 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (!session) {
-    return <Login />;
-  }
-
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>Bienvenido</h1>
-
-      <p>Login correcto.</p>
-
-      <button
-        onClick={() =>
-          supabase.auth.signOut()
-        }
-      >
-        Cerrar sesión
-      </button>
-    </div>
-  );
+if (!session) {
+  return <Login />;
 }
 
+return <Dashboard />;
+}
 export default App;
