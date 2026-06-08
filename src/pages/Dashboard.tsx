@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import type { Client } from "../types/client";
+import NewClient from "./NewClient";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   async function logout() {
     await supabase.auth.signOut();
@@ -67,7 +70,9 @@ export default function Dashboard() {
             marginBottom: "20px",
           }}
         />
-
+        <NewClient
+  onCreated={loadClients}
+/>
         {loading ? (
           <p>Cargando...</p>
         ) : (
@@ -75,11 +80,15 @@ export default function Dashboard() {
             {clients.map((client) => (
               <div
                 key={client.id}
+                onClick={() =>
+                navigate(`/client/${client.id}`)
+                }
                 style={{
                   background: "white",
                   padding: "20px",
                   borderRadius: "12px",
                   marginBottom: "12px",
+                 cursor: "pointer",
                 }}
               >
                 <h2>{client.name}</h2>
@@ -96,6 +105,7 @@ export default function Dashboard() {
           </>
         )}
       </div>
+
     </div>
   );
 }

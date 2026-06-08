@@ -1,32 +1,56 @@
 import { useEffect, useState } from "react";
+import {
+  Routes,
+  Route,
+} from "react-router-dom";
+
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import ClientDetail from "./pages/ClientDetail";
+
 import { supabase } from "./services/supabase";
 
-
 function App() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] =
+    useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+      });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
+    } =
+      supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setSession(session);
+        }
+      );
 
-    return () => subscription.unsubscribe();
+    return () =>
+      subscription.unsubscribe();
   }, []);
 
-if (!session) {
-  return <Login />;
+  if (!session) {
+    return <Login />;
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={<Dashboard />}
+      />
+
+      <Route
+        path="/client/:id"
+        element={<ClientDetail />}
+      />
+    </Routes>
+  );
 }
 
-return <Dashboard />;
-}
 export default App;
