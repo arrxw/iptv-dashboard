@@ -10,7 +10,7 @@ export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [client, setClient] =
+  const [, setClient] =
     useState<Client | null>(null);
 
   const [devices, setDevices] =
