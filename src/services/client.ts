@@ -3,17 +3,9 @@ export interface Client {
 
   name: string;
 
-  mac_address: string;
+  whatsapp: string | null;
 
-  start_date: string;
-
-  end_date: string;
-
-  app_name: string;
-
-  notes: string;
-
-  active: boolean;
+  notes: string | null;
 
   created_at: string;
 }
