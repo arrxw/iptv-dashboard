@@ -186,6 +186,9 @@ export default function Dashboard() {
         .includes(
           search.toLowerCase()
         )
+    (client.notes || "")
+      .toLowerCase()
+      .includes(search.toLowerCase())
     );
 
   if (loading) {

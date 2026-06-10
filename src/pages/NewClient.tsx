@@ -220,10 +220,10 @@ export default function NewClient({
             textTransform: "uppercase",
           }}
         >
-          Notas Cliente
+          URL del servidor
         </label>
         <textarea
-          placeholder="Notas adicionales del cliente..."
+          placeholder="Pega aquí la URL del servidor..."
           value={clientNotes}
           onChange={(e) => setClientNotes(e.target.value)}
           style={{

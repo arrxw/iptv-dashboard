@@ -399,12 +399,12 @@ export default function ClientDetail() {
                   textTransform: "uppercase",
                 }}
               >
-                Notas
+                URL del Servidor
               </label>
               <textarea
                 value={clientNotes}
                 onChange={(e) => setClientNotes(e.target.value)}
-                placeholder="Notas adicionales del cliente..."
+                placeholder="Url del servidor o notas adicionales..."
                 style={{
                   width: "100%",
                   minHeight: "120px",
