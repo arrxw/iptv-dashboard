@@ -16,11 +16,6 @@ export default function ClientDetail() {
   const [devices, setDevices] =
     useState<Device[]>([]);
 
-  const [
-    showNewDevice,
-    setShowNewDevice,
-  ] = useState(false);
-
   const [loading, setLoading] =
     useState(true);
 
