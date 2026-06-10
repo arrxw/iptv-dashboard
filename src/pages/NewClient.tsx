@@ -116,123 +116,401 @@ export default function NewClient({
       onSubmit={handleSubmit}
       style={{
         background: "white",
-        padding: "20px",
+        padding: "24px",
         borderRadius: "12px",
         marginBottom: "20px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
       }}
     >
-      <h2>Nuevo Cliente</h2>
+      <h2
+        style={{
+          margin: "0 0 20px 0",
+          fontSize: "18px",
+          fontWeight: "600",
+          color: "#1f2937",
+        }}
+      >
+        ➕ Nuevo Cliente
+      </h2>
 
-      <input
-        placeholder="Nombre *"
-        value={name}
-        onChange={(e) =>
-          setName(e.target.value)
-        }
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Nombre *
+        </label>
+        <input
+          placeholder="Nombre del cliente"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          WhatsApp
+        </label>
+        <input
+          placeholder="+34 666 123 456"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Notas Cliente
+        </label>
+        <textarea
+          placeholder="Notas adicionales del cliente..."
+          value={clientNotes}
+          onChange={(e) => setClientNotes(e.target.value)}
+          style={{
+            width: "100%",
+            minHeight: "120px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            resize: "vertical",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
+
+      <hr
+        style={{
+          margin: "24px 0",
+          border: "none",
+          borderTop: "1px solid #e5e7eb",
+        }}
       />
 
-      <br />
-      <br />
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Alias Dispositivo *
+        </label>
+        <input
+          placeholder="Nombre del dispositivo"
+          value={alias}
+          onChange={(e) => setAlias(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <input
-        placeholder="WhatsApp"
-        value={whatsapp}
-        onChange={(e) =>
-          setWhatsapp(e.target.value)
-        }
-      />
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          MAC *
+        </label>
+        <input
+          placeholder="Dirección MAC"
+          value={mac}
+          onChange={(e) => setMac(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <br />
-      <br />
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          App IPTV
+        </label>
+        <input
+          placeholder="Nombre de la aplicación"
+          value={app}
+          onChange={(e) => setApp(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <textarea
-        placeholder="Notas cliente"
-        value={clientNotes}
-        onChange={(e) =>
-          setClientNotes(e.target.value)
-        }
-      />
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Inicio *
+        </label>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <hr />
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Fin *
+        </label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <input
-        placeholder="Alias dispositivo *"
-        value={alias}
-        onChange={(e) =>
-          setAlias(e.target.value)
-        }
-      />
+      <div style={{ marginBottom: "20px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Notas Dispositivo
+        </label>
+        <textarea
+          placeholder="Notas del dispositivo..."
+          value={deviceNotes}
+          onChange={(e) => setDeviceNotes(e.target.value)}
+          style={{
+            width: "100%",
+            minHeight: "120px",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            resize: "vertical",
+            transition: "all 0.2s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+      </div>
 
-      <br />
-      <br />
-
-      <input
-        placeholder="MAC *"
-        value={mac}
-        onChange={(e) =>
-          setMac(e.target.value)
-        }
-      />
-
-      <br />
-      <br />
-
-      <input
-        placeholder="App IPTV"
-        value={app}
-        onChange={(e) =>
-          setApp(e.target.value)
-        }
-      />
-
-      <br />
-      <br />
-
-      <label>
-        Inicio:
-      </label>
-
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) =>
-          setStartDate(e.target.value)
-        }
-      />
-
-      <br />
-      <br />
-
-      <label>
-        Fin:
-      </label>
-
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) =>
-          setEndDate(e.target.value)
-        }
-      />
-
-      <br />
-      <br />
-
-      <textarea
-        placeholder="Notas dispositivo"
-        value={deviceNotes}
-        onChange={(e) =>
-          setDeviceNotes(e.target.value)
-        }
-      />
-
-      <br />
-      <br />
-
-      <button type="submit">
-        {loading
-          ? "Guardando..."
-          : "Guardar Cliente"}
+      <button
+        type="submit"
+        style={{
+          width: "100%",
+          padding: "12px",
+          borderRadius: "8px",
+          border: "none",
+          background: "#667eea",
+          color: "white",
+          cursor: "pointer",
+          fontWeight: "600",
+          fontSize: "14px",
+          transition: "all 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = "#5568d3";
+          e.currentTarget.style.transform = "translateY(-2px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = "#667eea";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        {loading ? "Guardando..." : "✓ Guardar Cliente"}
       </button>
     </form>
   );

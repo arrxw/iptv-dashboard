@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import NewClient from "./NewClient";
+import Modal from "../components/Modal";
+import { formatDate } from "../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 
 const styles = `
@@ -469,20 +471,19 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Formulario nuevo cliente */}
-          {showNewClient && (
-            <div
-              style={{
-                marginBottom: "30px",
+          {/* Formulario nuevo cliente EN MODAL */}
+          <Modal
+            isOpen={showNewClient}
+            onClose={() => setShowNewClient(false)}
+            title="Crear nuevo cliente"
+          >
+            <NewClient
+              onCreated={() => {
+                setShowNewClient(false);
+                loadClients();
               }}
-            >
-              <NewClient
-                onCreated={
-                  loadClients
-                }
-              />
-            </div>
-          )}
+            />
+          </Modal>
 
           {/* Panel próximos vencimientos */}
           {showUpcoming && (
@@ -592,6 +593,21 @@ export default function Dashboard() {
                           {
                             device.alias
                           }
+                        </p>
+
+                        <p
+                          style={{
+                            margin:
+                              "0 0 8px 0",
+                            fontSize:
+                              "12px",
+                            color:
+                              "#9ca3af",
+                          }}
+                        >
+                          {formatDate(
+                            device.end_date
+                          )}
                         </p>
 
                         <p
