@@ -46,6 +46,9 @@ export default function ClientDetail() {
   const [clientNotes, setClientNotes] =
   useState("");
 
+  const [showNewDevice, setShowNewDevice] =
+  useState(false);
+
   async function loadData() {
     if (!id) return;
 
@@ -98,6 +101,16 @@ setLoading(false);
   useEffect(() => {
     loadData();
   }, [id]);
+
+  function formatDate(
+    date: string
+  ) {
+    return new Date(
+      date
+    ).toLocaleDateString(
+      "es-ES"
+    );
+  }
 
   function daysRemaining(
     endDate: string
@@ -179,6 +192,22 @@ setLoading(false);
     device: Device,
     months: number
   ) {
+    const confirmRenew =
+      window.confirm(
+        `¿Renovar ${months} meses?`
+      );
+
+    if (!confirmRenew)
+      return;
+
+    const doubleConfirm =
+      window.confirm(
+        "Confirmación final"
+      );
+
+    if (!doubleConfirm)
+      return;
+
     const current =
       new Date(device.end_date);
 
@@ -337,93 +366,123 @@ setLoading(false);
 
       <hr />
 
-      <h2>
-        Nuevo dispositivo
-      </h2>
-
-      <input
-        placeholder="Alias"
-        value={alias}
-        onChange={(e) =>
-          setAlias(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
-      <input
-        placeholder="MAC"
-        value={mac}
-        onChange={(e) =>
-          setMac(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
-      <input
-        placeholder="App IPTV"
-        value={app}
-        onChange={(e) =>
-          setApp(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
-      <input
-        type="date"
-        value={startDate}
-        onChange={(e) =>
-          setStartDate(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
-      <input
-        type="date"
-        value={endDate}
-        onChange={(e) =>
-          setEndDate(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
-      <textarea
-        placeholder="Notas"
-        value={notes}
-        onChange={(e) =>
-          setNotes(
-            e.target.value
-          )
-        }
-      />
-
-      <br />
-      <br />
-
       <button
-        onClick={addDevice}
+        onClick={() =>
+          setShowNewDevice(
+            !showNewDevice
+          )
+        }
+        style={{
+          marginBottom: "20px",
+          padding: "12px",
+        }}
       >
-        + Añadir dispositivo
+        {showNewDevice
+          ? "▲ Ocultar dispositivo"
+          : "+ Añadir dispositivo"}
       </button>
+
+      {showNewDevice && (
+        <div
+          style={{
+            background:
+              "#f9f9f9",
+            padding: "20px",
+            borderRadius:
+              "12px",
+            marginBottom:
+              "20px",
+          }}
+        >
+          <h2>
+            Nuevo dispositivo
+          </h2>
+
+          <input
+            placeholder="Alias"
+            value={alias}
+            onChange={(e) =>
+              setAlias(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <input
+            placeholder="MAC"
+            value={mac}
+            onChange={(e) =>
+              setMac(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <input
+            placeholder="App IPTV"
+            value={app}
+            onChange={(e) =>
+              setApp(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) =>
+              setStartDate(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) =>
+              setEndDate(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <textarea
+            placeholder="Notas"
+            value={notes}
+            onChange={(e) =>
+              setNotes(
+                e.target.value
+              )
+            }
+          />
+
+          <br />
+          <br />
+
+          <button
+            onClick={addDevice}
+          >
+            + Añadir dispositivo
+          </button>
+        </div>
+      )}
 
       <hr />
 
@@ -533,14 +592,18 @@ setLoading(false);
               <p>
                 Inicio:{" "}
                 {
-                  device.start_date
+                  formatDate(
+                    device.start_date
+                  )
                 }
               </p>
 
               <p>
                 Fin:{" "}
                 {
-                  device.end_date
+                  formatDate(
+                    device.end_date
+                  )
                 }
               </p>
 
