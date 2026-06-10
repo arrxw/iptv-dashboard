@@ -178,18 +178,22 @@ export default function Dashboard() {
   useEffect(() => {
     loadClients();
   }, []);
-
+  
   const filteredClients =
-    clients.filter((client) =>
+  clients.filter(
+    (client) =>
       client.name
         .toLowerCase()
         .includes(
           search.toLowerCase()
+        ) ||
+
+      (client.notes || "")
+        .toLowerCase()
+        .includes(
+          search.toLowerCase()
         )
-    (client.notes || "")
-      .toLowerCase()
-      .includes(search.toLowerCase())
-    );
+  );
 
   if (loading) {
     return (
