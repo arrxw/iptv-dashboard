@@ -385,6 +385,40 @@ export default function Dashboard() {
     }}
   />
 
+  <div
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit,minmax(220px,1fr))",
+    gap: "12px",
+    marginBottom: "25px",
+  }}
+>
+  <button
+    onClick={() =>
+      navigate("/expiring")
+    }
+  >
+    ⏰ Próximos a caducar
+  </button>
+
+  <button
+    onClick={() =>
+      navigate("/tools")
+    }
+  >
+    🛠 Herramientas
+  </button>
+
+  <button
+    onClick={() =>
+      navigate("/links")
+    }
+  >
+    🔗 Enlaces rápidos
+  </button>
+</div>
+
   {search && (
     <button
       onClick={() =>
