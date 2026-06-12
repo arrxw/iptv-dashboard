@@ -338,44 +338,74 @@ const endDate =
           }}
         />
       </div>
+<div style={{ marginBottom: "16px" }}>
+  <label
+    style={{
+      display: "block",
+      fontSize: "12px",
+      fontWeight: "600",
+      color: "#6b7280",
+      marginBottom: "6px",
+      textTransform: "uppercase",
+    }}
+  >
+    App IPTV
+  </label>
 
-      <div style={{ marginBottom: "16px" }}>
-        <label
-          style={{
-            display: "block",
-            fontSize: "12px",
-            fontWeight: "600",
-            color: "#6b7280",
-            marginBottom: "6px",
-            textTransform: "uppercase",
-          }}
-        >
-          App IPTV
-        </label>
-        <input
-          placeholder="Nombre de la aplicación"
-          value={app}
-          onChange={(e) => setApp(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #e5e7eb",
-            fontSize: "14px",
-            fontFamily: "inherit",
-            boxSizing: "border-box",
-            transition: "all 0.2s",
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = "#667eea";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#e5e7eb";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        />
-      </div>
+  <select
+    value={app}
+    onChange={(e) =>
+      setApp(e.target.value)
+    }
+    style={{
+      width: "100%",
+      padding: "12px",
+      borderRadius: "8px",
+      border: "1px solid #e5e7eb",
+      fontSize: "14px",
+      fontFamily: "inherit",
+      boxSizing: "border-box",
+      transition: "all 0.2s",
+      background: "white",
+    }}
+    onFocus={(e) => {
+      e.currentTarget.style.borderColor =
+        "#667eea";
+      e.currentTarget.style.boxShadow =
+        "0 0 0 3px rgba(102, 126, 234, 0.1)";
+    }}
+    onBlur={(e) => {
+      e.currentTarget.style.borderColor =
+        "#e5e7eb";
+      e.currentTarget.style.boxShadow =
+        "none";
+    }}
+  >
+    <option value="">
+      Seleccionar aplicación
+    </option>
+
+    <option value="Elk Player">
+      Elk Player
+    </option>
+
+    <option value="Hot IPTV">
+      Hot IPTV
+    </option>
+
+    <option value="Smarters">
+      Smarters
+    </option>
+
+    <option value="MEGA">
+      MEGA
+    </option>
+
+    <option value="Otro">
+      Otro (Formuler...)
+    </option>
+  </select>
+</div>
 
       <div style={{ marginBottom: "16px" }}>
         <label
