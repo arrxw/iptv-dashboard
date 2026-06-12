@@ -21,9 +21,6 @@ export default function NewClient({
   const [startDate, setStartDate] =
     useState("");
 
-  const [endDate, setEndDate] =
-    useState("");
-
   const [deviceNotes, setDeviceNotes] =
     useState("");
 
@@ -39,8 +36,7 @@ export default function NewClient({
       !name ||
       !alias ||
       !mac ||
-      !startDate ||
-      !endDate
+      !startDate
     ) {
       alert(
         "Completa todos los campos obligatorios"
@@ -69,6 +65,17 @@ export default function NewClient({
       return;
     }
 
+    const calculatedEndDate =
+  new Date(startDate);
+
+calculatedEndDate.setFullYear(
+  calculatedEndDate.getFullYear() + 1
+);
+
+const endDate =
+  calculatedEndDate
+    .toISOString()
+    .split("T")[0];
     const { error: deviceError } =
       await supabase
         .from("devices")
@@ -98,7 +105,6 @@ export default function NewClient({
     setApp("");
 
     setStartDate("");
-    setEndDate("");
 
     setDeviceNotes("");
 
@@ -410,19 +416,6 @@ export default function NewClient({
       </div>
 
       <div style={{ marginBottom: "16px" }}>
-        <label
-          style={{
-            display: "block",
-            fontSize: "12px",
-            fontWeight: "600",
-            color: "#6b7280",
-            marginBottom: "6px",
-            textTransform: "uppercase",
-          }}
-        >
-      </div>
-
-      <div style={{ marginBottom: "20px" }}>
         <label
           style={{
             display: "block",
