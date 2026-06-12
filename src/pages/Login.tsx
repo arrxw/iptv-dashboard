@@ -113,7 +113,7 @@ export default function Login() {
                 background:
                   "#fee2e2",
                 border: "1px solid #fca5a5",
-                color: "#dc2626",
+                color: "#eb1414",
                 fontSize: "13px",
                 fontWeight: "500",
               }}
@@ -140,7 +140,7 @@ export default function Login() {
                     "uppercase",
                 }}
               >
-                Correo Electrónico
+                Correo
               </label>
               <input
                 type="email"
@@ -163,7 +163,7 @@ export default function Login() {
                   transition:
                     "all 0.2s",
                   background: loading
-                    ? "#f9fafb"
+                    ? "#94b5d6"
                     : "white",
                   opacity: loading ? 0.6 : 1,
                 }}
@@ -285,8 +285,8 @@ export default function Login() {
               }}
             >
               {loading
-                ? "Entrando..."
-                : "Iniciar sesión"}
+                ? "Accediendo al sistema..."
+                : "Iniciar sesión 🚀"}
             </button>
           </form>
 
