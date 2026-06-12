@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import NewClient from "./NewClient";
-import Modal from "../components/Modal";
 import { formatDate } from "../utils/dateUtils";
 import { useNavigate } from "react-router-dom";
 
@@ -541,6 +540,9 @@ export default function Dashboard() {
               🔗 Enlaces
             </button>
           </div>
+          {showNewClient && (
+            <NewClient onCreated={loadClients} />
+          )}
           {showUpcoming && (
             <div
               style={{
