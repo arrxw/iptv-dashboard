@@ -420,31 +420,6 @@ export default function NewClient({
             textTransform: "uppercase",
           }}
         >
-          Fin *
-        </label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #e5e7eb",
-            fontSize: "14px",
-            fontFamily: "inherit",
-            boxSizing: "border-box",
-            transition: "all 0.2s",
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = "#667eea";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#e5e7eb";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        />
       </div>
 
       <div style={{ marginBottom: "20px" }}>
