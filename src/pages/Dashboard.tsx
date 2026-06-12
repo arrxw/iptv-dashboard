@@ -341,49 +341,72 @@ export default function Dashboard() {
             padding: "40px 20px 0",
           }}
         >
-          {/* Buscador mejorado */}
-          <div
-            style={{
-              marginBottom: "30px",
-            }}
-          >
-            <input
-              placeholder="🔍 Buscar cliente..."
-              value={search}
-              onChange={(e) =>
-                setSearch(
-                  e.target.value
-                )
-              }
-              style={{
-                width: "100%",
-                padding: "14px 18px",
-                borderRadius:
-                  "12px",
-                border:
-                  "2px solid #e5e7eb",
-                fontSize: "15px",
-                transition:
-                  "all 0.2s",
-                boxSizing:
-                  "border-box",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.05)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor =
-                  "#667eea";
-                e.currentTarget.style.boxShadow =
-                  "0 4px 12px rgba(102, 126, 234, 0.15)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor =
-                  "#e5e7eb";
-                e.currentTarget.style.boxShadow =
-                  "0 2px 8px rgba(0,0,0,0.05)";
-              }}
-            />
-          </div>
+
+<div
+  style={{
+    marginBottom: "30px",
+    display: "flex",
+    gap: "8px",
+  }}
+>
+  <input
+    placeholder="🔍 Buscar cliente..."
+    value={search}
+    onChange={(e) =>
+      setSearch(
+        e.target.value
+      )
+    }
+    style={{
+      flex: 1,
+      padding: "14px 18px",
+      borderRadius: "12px",
+      border:
+        "2px solid #e5e7eb",
+      fontSize: "15px",
+      transition:
+        "all 0.2s",
+      boxSizing:
+        "border-box",
+      boxShadow:
+        "0 2px 8px rgba(0,0,0,0.05)",
+    }}
+    onFocus={(e) => {
+      e.currentTarget.style.borderColor =
+        "#667eea";
+      e.currentTarget.style.boxShadow =
+        "0 4px 12px rgba(102, 126, 234, 0.15)";
+    }}
+    onBlur={(e) => {
+      e.currentTarget.style.borderColor =
+        "#e5e7eb";
+      e.currentTarget.style.boxShadow =
+        "0 2px 8px rgba(0,0,0,0.05)";
+    }}
+  />
+
+  {search && (
+    <button
+      onClick={() =>
+        setSearch("")
+      }
+      style={{
+        padding:
+          "14px 18px",
+        border: "none",
+        borderRadius:
+          "12px",
+        background:
+          "#ef4444",
+        color: "white",
+        cursor: "pointer",
+        fontWeight: "bold",
+      }}
+    >
+      ✕
+    </button>
+  )}
+</div>
 
           {/* Botones de acción */}
           <div
