@@ -385,64 +385,29 @@ export default function Dashboard() {
     }}
   />
 
-  <div
-  style={{
-    display: "grid",
-    gridTemplateColumns:
-      "repeat(auto-fit,minmax(220px,1fr))",
-    gap: "12px",
-    marginBottom: "25px",
-  }}
->
-  <button
-    onClick={() =>
-      navigate("/expiring")
-    }
-  >
-    ⏰ Próximos a caducar
-  </button>
-
-  <button
-    onClick={() =>
-      navigate("/tools")
-    }
-  >
-    🛠 Herramientas
-  </button>
-
-  <button
-    onClick={() =>
-      navigate("/links")
-    }
-  >
-    🔗 Enlaces rápidos
-  </button>
+ {search && (
+   <button
+     onClick={() =>
+       setSearch("")
+     }
+     style={{
+       padding:
+         "14px 18px",
+       border: "none",
+       borderRadius:
+         "12px",
+       background:
+         "#ef4444",
+       color: "white",
+       cursor: "pointer",
+       fontWeight: "bold",
+     }}
+   >
+     ✕
+   </button>
+ )}
 </div>
-
-  {search && (
-    <button
-      onClick={() =>
-        setSearch("")
-      }
-      style={{
-        padding:
-          "14px 18px",
-        border: "none",
-        borderRadius:
-          "12px",
-        background:
-          "#ef4444",
-        color: "white",
-        cursor: "pointer",
-        fontWeight: "bold",
-      }}
-    >
-      ✕
-    </button>
-  )}
-</div>
-
-          {/* Botones de acción */}
+           {/* Botones de acción */}
           <div
             style={{
               display: "flex",
@@ -459,7 +424,7 @@ export default function Dashboard() {
               }
               style={{
                 padding:
-                  "12px 24px",
+                  "12px 20px",
                 borderRadius:
                   "10px",
                 border: "none",
@@ -473,22 +438,8 @@ export default function Dashboard() {
                 cursor: "pointer",
                 fontWeight: "600",
                 fontSize: "14px",
-                transition:
-                  "all 0.2s",
                 boxShadow:
                   "0 2px 8px rgba(0,0,0,0.08)",
-              }}
-              onMouseEnter={(e) => {
-                if (!showNewClient) {
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 16px rgba(102, 126, 234, 0.3)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!showNewClient) {
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.08)";
-                }
               }}
             >
               {showNewClient
@@ -506,89 +457,105 @@ export default function Dashboard() {
                 }
                 style={{
                   padding:
-                    "12px 24px",
+                    "12px 20px",
                   borderRadius:
                     "10px",
                   border: "none",
-                  background: "#fef3c7",
-                  color: "#92400e",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  transition:
-                    "all 0.2s",
+                  background:
+                    "#fef3c7",
+                  color:
+                    "#92400e",
+                  cursor:
+                    "pointer",
+                  fontWeight:
+                    "600",
+                  fontSize:
+                    "14px",
                   boxShadow:
                     "0 2px 8px rgba(0,0,0,0.08)",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 16px rgba(217, 119, 6, 0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.08)";
-                }}
               >
-                ⚠️ {upcomingDevices.length}{" "}
+                ⚠️{" "}
+                {
+                  upcomingDevices.length
+                }{" "}
                 próximos
               </button>
             )}
-          </div>
 
-          {/* Formulario nuevo cliente EN MODAL */}
-          <Modal
-            isOpen={showNewClient}
-            onClose={() => setShowNewClient(false)}
-            title="Crear nuevo cliente"
-          >
-            <NewClient
-              onCreated={() => {
-                setShowNewClient(false);
-                loadClients();
+            <button
+              onClick={() =>
+                navigate(
+                  "/tools"
+                )
+              }
+              style={{
+                padding:
+                  "12px 20px",
+                borderRadius:
+                  "10px",
+                border: "none",
+                background:
+                  "#e0e7ff",
+                color:
+                  "#4338ca",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
+                fontSize:
+                  "14px",
+                boxShadow:
+                  "0 2px 8px rgba(0,0,0,0.08)",
               }}
-            />
-          </Modal>
+            >
+              🛠 Herramientas
+            </button>
 
-          {/* Panel próximos vencimientos */}
+            <button
+              onClick={() =>
+                navigate(
+                  "/links"
+                )
+              }
+              style={{
+                padding:
+                  "12px 20px",
+                borderRadius:
+                  "10px",
+                border: "none",
+                background:
+                  "#dcfce7",
+                color:
+                  "#166534",
+                cursor:
+                  "pointer",
+                fontWeight:
+                  "600",
+                fontSize:
+                  "14px",
+                boxShadow:
+                  "0 2px 8px rgba(0,0,0,0.08)",
+              }}
+            >
+              🔗 Enlaces
+            </button>
+          </div>
           {showUpcoming && (
             <div
               style={{
-                background:
-                  "white",
-                borderRadius:
-                  "12px",
-                padding: "24px",
-                marginBottom: "30px",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.08)",
-                border: "2px solid #fbbf24",
+                background: "#f9fafb",
+                borderRadius: "8px",
+                padding: "12px",
+                borderLeft: "4px solid #f97316",
+                cursor: "pointer",
               }}
             >
-              <h3
-                style={{
-                  margin: "0 0 20px 0",
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  color: "#1f2937",
-                }}
-              >
-                ⚠️ Próximos
-                vencimientos
-              </h3>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fill, minmax(250px, 1fr))",
-                  gap: "12px",
-                }}
-              >
-                {upcomingDevices.map(
-                  (device) => {
-                    const client =
-                      clients.find(
-                        (c) =>
+              {upcomingDevices.map(
+                (device) => {
+                  const client =
+                    clients.find(
+                      (c) =>
                           c.id ===
                           device.client_id
                       );
@@ -702,8 +669,8 @@ export default function Dashboard() {
                   }
                 )}
               </div>
-            </div>
           )}
+          
 
           {/* Título de clientes */}
           <div
