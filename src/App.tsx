@@ -7,7 +7,6 @@ import {
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClientDetail from "./pages/ClientDetail";
-import Tools from "./pages/Tools";
 import Links from "./pages/Links";
 
 import { supabase } from "./services/supabase";
@@ -50,11 +49,6 @@ function App() {
       <Route
         path="/client/:id"
         element={<ClientDetail />}
-      />
-
-      <Route
-        path="/tools"
-        element={<Tools />}
       />
 
       <Route
