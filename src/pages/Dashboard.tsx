@@ -508,35 +508,7 @@ export default function Dashboard() {
                   "0 2px 8px rgba(0,0,0,0.08)",
               }}
             >
-              🛠 Herramientas
-            </button>
 
-            <button
-              onClick={() =>
-                navigate(
-                  "/links"
-                )
-              }
-              style={{
-                padding:
-                  "12px 20px",
-                borderRadius:
-                  "10px",
-                border: "none",
-                background:
-                  "#dcfce7",
-                color:
-                  "#166534",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-                fontSize:
-                  "14px",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.08)",
-              }}
-            >
               🔗 Enlaces
             </button>
           </div>
