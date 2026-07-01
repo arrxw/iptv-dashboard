@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../services/supabase";
 
 interface Props {
@@ -20,12 +20,26 @@ export default function NewClient({
 
   const [startDate, setStartDate] =
     useState("");
+  const [duration, setDuration] = useState("12");
 
   const [deviceNotes, setDeviceNotes] =
     useState("");
 
   const [loading, setLoading] =
     useState(false);
+
+  const [appsList, setAppsList] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    async function loadApps() {
+      const { data } = await supabase
+        .from("apps")
+        .select("*")
+        .order("name");
+      setAppsList(data || []);
+    }
+    loadApps();
+  }, []);
 
   async function handleSubmit(
     e: React.FormEvent
@@ -65,17 +79,9 @@ export default function NewClient({
       return;
     }
 
-    const calculatedEndDate =
-  new Date(startDate);
-
-calculatedEndDate.setFullYear(
-  calculatedEndDate.getFullYear() + 1
-);
-
-const endDate =
-  calculatedEndDate
-    .toISOString()
-    .split("T")[0];
+    const calculatedEndDate = new Date(startDate);
+    calculatedEndDate.setMonth(calculatedEndDate.getMonth() + parseInt(duration));
+    const endDate = calculatedEndDate.toISOString().split("T")[0];
     const { error: deviceError } =
       await supabase
         .from("devices")
@@ -105,6 +111,7 @@ const endDate =
     setApp("");
 
     setStartDate("");
+    setDuration("12");
 
     setDeviceNotes("");
 
@@ -384,26 +391,11 @@ const endDate =
     <option value="">
       Seleccionar aplicación
     </option>
-
-    <option value="Elk Player">
-      Elk Player
-    </option>
-
-    <option value="Hot IPTV">
-      Hot IPTV
-    </option>
-
-    <option value="Smarters">
-      Smarters
-    </option>
-
-    <option value="MEGA">
-      MEGA
-    </option>
-
-    <option value="Otro">
-      Otro (Formuler...)
-    </option>
+    {appsList.map((appItem) => (
+      <option key={appItem.id} value={appItem.name}>
+        {appItem.name}
+      </option>
+    ))}
   </select>
 </div>
 
@@ -443,6 +435,49 @@ const endDate =
             e.currentTarget.style.boxShadow = "none";
           }}
         />
+      </div>
+
+      <div style={{ marginBottom: "16px" }}>
+        <label
+          style={{
+            display: "block",
+            fontSize: "12px",
+            fontWeight: "600",
+            color: "#6b7280",
+            marginBottom: "6px",
+            textTransform: "uppercase",
+          }}
+        >
+          Duración *
+        </label>
+        <select
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "8px",
+            border: "1px solid #e5e7eb",
+            fontSize: "14px",
+            fontFamily: "inherit",
+            boxSizing: "border-box",
+            transition: "all 0.2s",
+            background: "white",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#667eea";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <option value="3">3 meses</option>
+          <option value="6">6 meses</option>
+          <option value="9">9 meses</option>
+          <option value="12">12 meses</option>
+        </select>
       </div>
 
       <div style={{ marginBottom: "16px" }}>

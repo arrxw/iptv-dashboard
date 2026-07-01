@@ -30,8 +30,9 @@ export default function ClientDetail() {
   const [mac, setMac] = useState("");
   const [app, setApp] = useState("");
   const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [duration, setDuration] = useState("12");
   const [notes, setNotes] = useState("");
+  const [appsList, setAppsList] = useState<{ id: string; name: string }[]>([]);
 
   const [clientName, setClientName] = useState("");
   const [clientWhatsapp, setClientWhatsapp] = useState("");
@@ -70,8 +71,17 @@ export default function ClientDetail() {
     setLoading(false);
   }
 
+  async function loadApps() {
+    const { data } = await supabase
+      .from("apps")
+      .select("*")
+      .order("name");
+    setAppsList(data || []);
+  }
+
   useEffect(() => {
     loadData();
+    loadApps();
   }, [id]);
 
   async function copyMac(mac: string) {
@@ -82,10 +92,14 @@ export default function ClientDetail() {
   async function addDevice() {
     if (!id) return;
 
-    if (!alias || !mac || !startDate || !endDate) {
+    if (!alias || !mac || !startDate || !duration) {
       alert("Completa los campos obligatorios");
       return;
     }
+
+    const start = new Date(startDate);
+    start.setMonth(start.getMonth() + parseInt(duration));
+    const calculatedEndDate = start.toISOString().split("T")[0];
 
     const { error } = await supabase.from("devices").insert({
       client_id: id,
@@ -93,7 +107,7 @@ export default function ClientDetail() {
       mac_address: mac,
       app_name: app,
       start_date: startDate,
-      end_date: endDate,
+      end_date: calculatedEndDate,
       notes,
       active: true,
     });
@@ -107,7 +121,7 @@ export default function ClientDetail() {
     setMac("");
     setApp("");
     setStartDate("");
-    setEndDate("");
+    setDuration("12");
     setNotes("");
     setShowAddDevice(false);
 
@@ -894,8 +908,7 @@ export default function ClientDetail() {
             >
               App IPTV
             </label>
-            <input
-              placeholder="Nombre de la aplicación"
+            <select
               value={app}
               onChange={(e) => setApp(e.target.value)}
               style={{
@@ -906,8 +919,16 @@ export default function ClientDetail() {
                 fontSize: "14px",
                 fontFamily: "inherit",
                 boxSizing: "border-box",
+                background: "white",
               }}
-            />
+            >
+              <option value="">Seleccionar aplicación</option>
+              {appsList.map((appItem) => (
+                <option key={appItem.id} value={appItem.name}>
+                  {appItem.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div style={{ marginBottom: "16px" }}>
@@ -950,12 +971,11 @@ export default function ClientDetail() {
                 textTransform: "uppercase",
               }}
             >
-              Fin *
+              Duración *
             </label>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
               style={{
                 width: "100%",
                 padding: "10px 12px",
@@ -964,8 +984,14 @@ export default function ClientDetail() {
                 fontSize: "14px",
                 fontFamily: "inherit",
                 boxSizing: "border-box",
+                background: "white",
               }}
-            />
+            >
+              <option value="3">3 meses</option>
+              <option value="6">6 meses</option>
+              <option value="9">9 meses</option>
+              <option value="12">12 meses</option>
+            </select>
           </div>
 
           <div style={{ marginBottom: "16px" }}>
