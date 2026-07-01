@@ -9,8 +9,7 @@ export default function NewClient({
   onCreated,
 }: Props) {
   const [name, setName] = useState("");
-  const [whatsapp, setWhatsapp] =
-    useState("");
+
   const [clientNotes, setClientNotes] =
     useState("");
 
@@ -67,7 +66,6 @@ export default function NewClient({
       .from("clients")
       .insert({
         name,
-        whatsapp,
         notes: clientNotes,
       })
       .select()
@@ -103,7 +101,6 @@ export default function NewClient({
     }
 
     setName("");
-    setWhatsapp("");
     setClientNotes("");
 
     setAlias("");
@@ -195,44 +192,7 @@ export default function NewClient({
             textTransform: "uppercase",
           }}
         >
-          WhatsApp
-        </label>
-        <input
-          placeholder="+34 666 123 456"
-          value={whatsapp}
-          onChange={(e) => setWhatsapp(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "8px",
-            border: "1px solid #e5e7eb",
-            fontSize: "14px",
-            fontFamily: "inherit",
-            boxSizing: "border-box",
-            transition: "all 0.2s",
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = "#667eea";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = "#e5e7eb";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        />
-      </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <label
-          style={{
-            display: "block",
-            fontSize: "12px",
-            fontWeight: "600",
-            color: "#6b7280",
-            marginBottom: "6px",
-            textTransform: "uppercase",
-          }}
-        >
           URL del servidor
         </label>
         <textarea
