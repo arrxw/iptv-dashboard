@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ClientDetail from "./pages/ClientDetail";
 import Links from "./pages/Links";
+import Settings from "./pages/Settings";
 
 import { supabase } from "./services/supabase";
 
@@ -55,6 +56,12 @@ function App() {
         path="/links"
         element={<Links />}
       />
+
+      <Route
+        path="/settings"
+        element={<Settings />}
+      />
+
     </Routes>
   );
 }

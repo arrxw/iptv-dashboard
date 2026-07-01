@@ -328,6 +328,26 @@ export default function Dashboard() {
               >
                 ← Cerrar sesión
               </button>
+
+            <button
+  onClick={() => navigate("/settings")}
+  style={{
+    padding: "12px 24px",
+    borderRadius: "10px",
+    border: "none",
+    background: "white",
+    color: "#333",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "14px",
+    transition: "all 0.2s",
+    boxShadow:
+      "0 2px 8px rgba(0,0,0,0.08)",
+  }}
+>
+  ⚙️ Configuración
+</button>
+
             </div>
           </div>
         </div>
