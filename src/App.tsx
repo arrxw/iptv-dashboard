@@ -10,7 +10,7 @@ import ClientDetail from "./pages/ClientDetail";
 import Links from "./pages/Links";
 import Settings from "./pages/Settings";
 import SettingsApps from "./pages/SettingsApps";
-
+import Subscriptions from "./pages/Subscriptions";
 import { supabase } from "./services/supabase";
 
 function App() {
@@ -67,6 +67,11 @@ function App() {
       path="/settings/apps"
       element={<SettingsApps />}
       />
+
+<Route
+  path="/subscriptions"
+  element={<Subscriptions />}
+/>
 
     </Routes>
   );

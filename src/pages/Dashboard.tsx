@@ -348,6 +348,29 @@ export default function Dashboard() {
   ⚙️ Configuración
 </button>
 
+<div
+  onClick={() => navigate("/subscriptions")}
+  style={{
+    padding: "12px 24px",
+    borderRadius: "10px",
+    border: "none",
+    background: "white",
+    color: "#333",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "12px",
+    transition: "all 0.2s",
+    boxShadow:
+      "0 2px 8px rgba(0,0,0,0.08)",
+  }}
+>
+  <h2>Suscripciones Gamsgo</h2>
+
+  <p>
+    Gestionar suscripciones
+  </p>
+</div>
+
             </div>
           </div>
         </div>
