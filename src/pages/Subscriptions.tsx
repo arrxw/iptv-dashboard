@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import Modal from "../components/Modal";
 import NewSubscription from "../components/NewSubscription";
+import SubscriptionDetails from "../components/SubscriptionDetails";
 // SubscriptionCard component not found in project; render subscription details inline
 
 export default function Subscriptions() {
@@ -10,6 +11,9 @@ export default function Subscriptions() {
 
   const [subscriptions, setSubscriptions] =
     useState<any[]>([]);
+
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<any>(null);
 
   useEffect(() => {
     loadSubscriptions();
@@ -46,24 +50,71 @@ export default function Subscriptions() {
     >
       <h1>🎬 Suscripciones</h1>
 
-      <button
-        onClick={() =>
-          setShowNewSubscription(true)
-        }
-        style={{
-          padding: "12px 24px",
-          borderRadius: "10px",
-          border: "none",
-          background: "#8b5cf6",
-          color: "white",
-          cursor: "pointer",
-          fontWeight: "600",
-          marginTop: "20px",
-          marginBottom: "30px",
-        }}
-      >
-        + Nueva suscripción
-      </button>
+      <div
+  style={{
+    background:
+      "linear-gradient(135deg,#7c3aed,#5b21b6)",
+    borderRadius: "22px",
+    padding: "35px",
+    color: "white",
+    marginBottom: "30px",
+    boxShadow:
+      "0 12px 30px rgba(91,33,182,.25)",
+  }}
+>
+  <button
+    onClick={() => window.history.back()}
+    style={{
+      background: "rgba(255,255,255,.15)",
+      color: "white",
+      border: "none",
+      borderRadius: "10px",
+      padding: "10px 16px",
+      cursor: "pointer",
+      marginBottom: "25px",
+    }}
+  >
+    ← Volver al Dashboard IPTV
+  </button>
+
+  <h1
+    style={{
+      margin: 0,
+      fontSize: "38px",
+    }}
+  >
+    🎬 Suscripciones
+  </h1>
+
+  <p
+    style={{
+      opacity: .9,
+      marginTop: "12px",
+      fontSize: "17px",
+    }}
+  >
+    Gestiona Netflix, Spotify, HBO, Disney+ y cualquier otra suscripción.
+  </p>
+</div>
+
+<button
+  onClick={() =>
+    setShowNewSubscription(true)
+  }
+  style={{
+    background: "#7c3aed",
+    color: "white",
+    border: "none",
+    borderRadius: "12px",
+    padding: "14px 22px",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer",
+    marginBottom: "30px",
+  }}
+>
+  ➕ Nueva suscripción
+</button>
 
       <Modal
         isOpen={showNewSubscription}
@@ -72,6 +123,20 @@ export default function Subscriptions() {
         }
         title="Nueva suscripción"
       >
+
+        <Modal
+  isOpen={selectedSubscription !== null}
+  onClose={() =>
+    setSelectedSubscription(null)
+  }
+  title="Detalles"
+>
+  {selectedSubscription && (
+    <SubscriptionDetails
+      subscription={selectedSubscription}
+    />
+  )}
+</Modal>
         <NewSubscription
           onCreated={() => {
             setShowNewSubscription(false);
@@ -105,6 +170,9 @@ export default function Subscriptions() {
             {subscriptions.map((item) => (
               <div
                 key={item.id}
+                onClick={() =>
+  setSelectedSubscription(item)
+}
                 style={{
                   background: "white",
                   borderRadius: "12px",
