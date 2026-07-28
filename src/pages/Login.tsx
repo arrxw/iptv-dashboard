@@ -39,7 +39,7 @@ export default function Login() {
       style={{
         minHeight: "100vh",
         background:
-          "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+          "linear-gradient(135deg, #df3333 0%, #c4b817 50%, #df3333 100%)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -256,7 +256,7 @@ export default function Login() {
                 borderRadius: "8px",
                 border: "none",
                 background:
-                  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  "linear-gradient(135deg, #ddc439 0%, #ce0606 100%)",
                 color: "white",
                 cursor: loading
                   ? "not-allowed"

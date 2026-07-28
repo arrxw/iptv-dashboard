@@ -594,16 +594,21 @@ export default function Dashboard() {
                             "8px",
                           padding:
                             "12px",
-                          borderLeft:
-                            days <
-                            7
-                              ? "4px solid #ef4444"
-                              : days <
-                                15
-                              ? "4px solid #f97316"
-                              : "4px solid #eab308",
+                        
+                            borderLeft:
+                              days < 0
+                            ? "4px solid #dc2626"
+                            : days < 7
+                            ? "4px solid #ef4444"
+                            : days < 15
+                            ? "4px solid #f97316"
+                          : "4px solid #eab308",
                           cursor:
                             "pointer",
+                            animation:
+  days < 0
+    ? "criticalBlink 1.5s infinite"
+    : "none",
                         }}
                         onClick={() => {
                           navigate(
@@ -676,10 +681,13 @@ export default function Dashboard() {
                                 : "#ca8a04",
                           }}
                         >
-                          {days ===
-                          1
-                            ? "1 día restante"
-                            : `${days} días restantes`}
+                          {days < 0
+  ? `⚠️ CADUCADA HACE ${Math.abs(days)} DÍAS`
+  : days === 0
+  ? "⚠️ CADUCA HOY"
+  : days === 1
+  ? "1 día restante"
+  : `${days} días restantes`}
                         </p>
                       </div>
                     );
