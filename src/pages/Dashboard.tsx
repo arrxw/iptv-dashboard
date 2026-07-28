@@ -231,7 +231,11 @@ export default function Dashboard() {
         (a, b) =>
           daysRemaining(a.end_date) -
           daysRemaining(b.end_date)
-      );
+        );
+  const expiredDevices = devices.filter((device) => {
+  return daysRemaining(device.end_date) <= 0;
+});
+    
 
   return (
     <>
@@ -558,6 +562,71 @@ export default function Dashboard() {
           {showNewClient && (
             <NewClient onCreated={loadClients} />
           )}
+
+          {expiredDevices.length > 0 && (
+  <div
+    style={{
+      marginBottom: "24px",
+      background: "#fef2f2",
+      border: "2px solid #ef4444",
+      borderRadius: "12px",
+      padding: "16px",
+    }}
+  >
+    <h3
+      style={{
+        marginTop: 0,
+        color: "#dc2626",
+      }}
+    >
+      🚨 Caducados ({expiredDevices.length})
+    </h3>
+
+    {expiredDevices.map((device) => {
+      const client = clients.find(
+        (c) => c.id === device.client_id
+      );
+
+      const days = daysRemaining(device.end_date);
+
+      return (
+        <div
+          key={device.id}
+          onClick={() =>
+            navigate(`/client/${device.client_id}`)
+          }
+          style={{
+            background: "#fff",
+            borderRadius: "10px",
+            padding: "12px",
+            marginBottom: "10px",
+            borderLeft: "5px solid #dc2626",
+            cursor: "pointer",
+            animation: "criticalBlink 1.5s infinite",
+          }}
+        >
+          <strong>{client?.name}</strong>
+
+          <p style={{ margin: "4px 0" }}>
+            {device.alias}
+          </p>
+
+          <p
+            style={{
+              color: "#dc2626",
+              fontWeight: "700",
+            }}
+          >
+            {days === 0
+              ? "⚠️ CADUCA HOY"
+              : `⚠️ CADUCADA HACE ${Math.abs(days)} DÍAS`}
+          </p>
+        </div>
+      );
+    })}
+  </div>
+)}
+
           {showUpcoming && (
             <div
               style={{

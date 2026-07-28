@@ -235,3 +235,43 @@ button:disabled {
     padding: 0;
   }
 }
+
+@keyframes criticalBlink {
+  0% {
+    box-shadow:
+      0 0 0 rgba(239, 68, 68, 0),
+      0 0 0 rgba(239, 68, 68, 0);
+    border-color: #dc2626;
+  }
+
+  50% {
+    box-shadow:
+      0 0 15px rgba(239, 68, 68, 0.9),
+      0 0 35px rgba(239, 68, 68, 0.5);
+    border-color: #ff0000;
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 rgba(239, 68, 68, 0),
+      0 0 0 rgba(239, 68, 68, 0);
+    border-color: #dc2626;
+  }
+}
+
+@keyframes criticalBlink {
+  0% {
+    background: #fff5f5;
+    box-shadow: 0 0 0 rgba(239,68,68,0);
+  }
+
+  50% {
+    background: #ffe5e5;
+    box-shadow: 0 0 22px rgba(239,68,68,.9);
+  }
+
+  100% {
+    background: #fff5f5;
+    box-shadow: 0 0 0 rgba(239,68,68,0);
+  }
+}
