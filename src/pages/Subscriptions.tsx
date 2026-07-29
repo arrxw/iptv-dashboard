@@ -1,218 +1,118 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
 import Modal from "../components/Modal";
 import NewSubscription from "../components/NewSubscription";
 import SubscriptionDetails from "../components/SubscriptionDetails";
-// SubscriptionCard component not found in project; render subscription details inline
+import PageShell from "../components/PageShell";
+import PageHeader from "../components/PageHeader";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Subscriptions() {
-  const [showNewSubscription, setShowNewSubscription] =
-    useState(false);
-
-  const [subscriptions, setSubscriptions] =
-    useState<any[]>([]);
-
-  const [selectedSubscription, setSelectedSubscription] =
-    useState<any>(null);
+  const [showNewSubscription, setShowNewSubscription] = useState(false);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [selectedSubscription, setSelectedSubscription] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadSubscriptions();
   }, []);
 
   async function loadSubscriptions() {
+    setLoading(true);
     const { data, error } = await supabase
       .from("subscriptions")
-      .select(
-        `
+      .select(`
         *,
         services(name)
-      `
-      )
-      .order("created_at", {
-        ascending: false,
-      });
+      `)
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error(error);
+      setLoading(false);
       return;
     }
 
     setSubscriptions(data || []);
+    setLoading(false);
+  }
+
+  if (loading) {
+    return <LoadingScreen message="Cargando suscripciones..." />;
   }
 
   return (
-    <div
-      style={{
-        padding: "40px",
-        maxWidth: "1200px",
-        margin: "0 auto",
-      }}
-    >
-      <h1>🎬 Suscripciones</h1>
-
-      <div
-  style={{
-    background:
-      "linear-gradient(135deg,#7c3aed,#5b21b6)",
-    borderRadius: "22px",
-    padding: "35px",
-    color: "white",
-    marginBottom: "30px",
-    boxShadow:
-      "0 12px 30px rgba(91,33,182,.25)",
-  }}
->
-  <button
-    onClick={() => window.history.back()}
-    style={{
-      background: "rgba(255,255,255,.15)",
-      color: "white",
-      border: "none",
-      borderRadius: "10px",
-      padding: "10px 16px",
-      cursor: "pointer",
-      marginBottom: "25px",
-    }}
-  >
-    ← Volver al Dashboard IPTV
-  </button>
-
-  <h1
-    style={{
-      margin: 0,
-      fontSize: "38px",
-    }}
-  >
-    🎬 Suscripciones
-  </h1>
-
-  <p
-    style={{
-      opacity: .9,
-      marginTop: "12px",
-      fontSize: "17px",
-    }}
-  >
-    Gestiona Netflix, Spotify, HBO, Disney+ y cualquier otra suscripción.
-  </p>
-</div>
-
-<button
-  onClick={() =>
-    setShowNewSubscription(true)
-  }
-  style={{
-    background: "#7c3aed",
-    color: "white",
-    border: "none",
-    borderRadius: "12px",
-    padding: "14px 22px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
-    marginBottom: "30px",
-  }}
->
-  ➕ Nueva suscripción
-</button>
-
-      <Modal
-        isOpen={showNewSubscription}
-        onClose={() =>
-          setShowNewSubscription(false)
-        }
-        title="Nueva suscripción"
-      >
-
-        <Modal
-  isOpen={selectedSubscription !== null}
-  onClose={() =>
-    setSelectedSubscription(null)
-  }
-  title="Detalles"
->
-  {selectedSubscription && (
-    <SubscriptionDetails
-      subscription={selectedSubscription}
-    />
-  )}
-</Modal>
-        <NewSubscription
-          onCreated={() => {
-            setShowNewSubscription(false);
-            loadSubscriptions();
-          }}
+    <PageShell>
+      <div className="subscriptions-page">
+        <PageHeader
+          title="Suscripciones"
+          subtitle="Gestiona tus servicios y sus planes desde un panel ordenado y claro."
+          actions={
+            <button className="button button--primary button--sm" onClick={() => setShowNewSubscription(true)}>
+              ➕ Nueva suscripción
+            </button>
+          }
         />
-      </Modal>
 
-      <div>
-        {subscriptions.length === 0 ? (
-          <div
-            style={{
-              background: "white",
-              padding: "30px",
-              borderRadius: "16px",
-              textAlign: "center",
-              color: "#6b7280",
-            }}
-          >
-            No hay suscripciones todavía.
+        <div className="subscriptions-hero card page-header page-header--purple">
+          <div>
+            <h2>Control completo de suscripciones</h2>
+            <p className="muted-text">Netflix, Spotify, HBO, Disney+ y más en un solo lugar.</p>
           </div>
+        </div>
+
+        {subscriptions.length === 0 ? (
+          <section className="card empty-state">
+            <p className="muted-text">No hay suscripciones todavía.</p>
+          </section>
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fill, minmax(340px, 1fr))",
-              gap: "20px",
-            }}
-          >
+          <div className="card-grid card-grid--columns-3">
             {subscriptions.map((item) => (
-              <div
+              <button
+                type="button"
                 key={item.id}
-                onClick={() =>
-  setSelectedSubscription(item)
-}
-                style={{
-                  background: "white",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  marginBottom: "15px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,.08)",
-                }}
+                className="subscription-card"
+                onClick={() => setSelectedSubscription(item)}
               >
-                <h3 style={{ margin: 0, marginBottom: "10px" }}>
-                  {item.services?.name}
-                </h3>
-
-                <p>
-                  <strong>Cuenta:</strong> {item.account_name}
-                </p>
-
-                <p>
-                  <strong>Correo:</strong> {item.email}
-                </p>
-
-                <p>
-                  <strong>Compra:</strong> {item.cost_price} €
-                </p>
-
-                <p>
-                  <strong>Venta:</strong> {item.sale_price} €
-                </p>
-
-                <p style={{ color: "#16a34a", fontWeight: "600" }}>
-                  Beneficio: {(Number(item.sale_price) - Number(item.cost_price)).toFixed(2)} €
-                </p>
-
-                <p>
+                <div className="subscription-card__content">
+                  <h3>{item.services?.name}</h3>
+                  <p className="muted-text">Cuenta: {item.account_name}</p>
+                  <p className="muted-text">Correo: {item.email}</p>
+                  <div className="subscription-card__row">
+                    <span>Compra: {item.cost_price} €</span>
+                    <span>Venta: {item.sale_price} €</span>
+                  </div>
+                  <span className="badge badge--success">
+                    Beneficio: {(Number(item.sale_price) - Number(item.cost_price)).toFixed(2)} €
+                  </span>
+                </div>
+                <div className="subscription-card__footer">
                   <strong>Caduca:</strong> {item.end_date}
-                </p>
-              </div>
+                </div>
+              </button>
             ))}
           </div>
         )}
+
+        <Modal isOpen={showNewSubscription} onClose={() => setShowNewSubscription(false)} title="Nueva suscripción">
+          <NewSubscription
+            onCreated={() => {
+              setShowNewSubscription(false);
+              loadSubscriptions();
+            }}
+          />
+        </Modal>
+
+        <Modal
+          isOpen={selectedSubscription !== null}
+          onClose={() => setSelectedSubscription(null)}
+          title="Detalles de suscripción"
+        >
+          {selectedSubscription && (
+            <SubscriptionDetails subscription={selectedSubscription} />
+          )}
+        </Modal>
       </div>
-    </div>
+    </PageShell>
   );
 }

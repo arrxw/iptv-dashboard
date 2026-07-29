@@ -1,4 +1,6 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
+import PageShell from "../components/PageShell";
+import PageHeader from "../components/PageHeader";
 
 export default function Links() {
   const navigate = useNavigate();
@@ -9,8 +11,7 @@ export default function Links() {
       name: "Panel IPTV",
       description: "Acceso al panel de control principal",
       icon: "📺",
-      color: "#667eea",
-      bgColor: "rgba(102, 126, 234, 0.1)",
+      variant: "accent",
       href: "https://AQUI-LINK-1.com",
     },
     {
@@ -18,8 +19,7 @@ export default function Links() {
       name: "Activación Elk Player",
       description: "Portal de activación para Elk Player",
       icon: "🎮",
-      color: "#764ba2",
-      bgColor: "rgba(118, 75, 162, 0.1)",
+      variant: "purple",
       href: "https://AQUI-LINK-2.com",
     },
     {
@@ -27,8 +27,7 @@ export default function Links() {
       name: "Activación Hot IPTV",
       description: "Portal de activación para Hot IPTV",
       icon: "🔥",
-      color: "#ef4444",
-      bgColor: "rgba(239, 68, 68, 0.1)",
+      variant: "danger",
       href: "https://AQUI-LINK-3.com",
     },
     {
@@ -36,287 +35,58 @@ export default function Links() {
       name: "Formuler",
       description: "Plataforma Formuler para dispositivos",
       icon: "⚙️",
-      color: "#10b981",
-      bgColor: "rgba(16, 185, 129, 0.1)",
+      variant: "success",
       href: "https://AQUI-LINK-4.com",
     },
   ];
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f8f9fa",
-        paddingBottom: "40px",
-      }}
-    >
-      {/* Cabecera */}
-      <div
-        style={{
-          background:
-            "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-          padding: "40px 20px",
-          color: "white",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              marginBottom: "16px",
-            }}
-          >
-            <button
-              onClick={() => navigate("/")}
-              style={{
-                padding: "10px 16px",
-                borderRadius: "8px",
-                border:
-                  "1px solid rgba(255,255,255,0.2)",
-                background:
-                  "rgba(255,255,255,0.1)",
-                color: "white",
-                cursor: "pointer",
-                fontWeight: "500",
-                fontSize: "14px",
-                transition: "all 0.2s",
-                backdropFilter: "blur(10px)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  "rgba(255,255,255,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  "rgba(255,255,255,0.1)";
-              }}
-            >
+    <PageShell>
+      <div className="links-page">
+        <PageHeader
+          title="Enlaces rápidos"
+          subtitle="Accede a servicios externos y portales de activación desde un solo lugar."
+          actions={
+            <button className="button button--secondary button--sm" onClick={() => navigate(-1)}>
               ← Volver
             </button>
-          </div>
+          }
+        />
 
-          <div>
-            <h1
-              style={{
-                margin: "0 0 8px 0",
-                fontSize: "32px",
-                fontWeight: "700",
-                letterSpacing: "-1px",
-              }}
-            >
-              🔗 Enlaces rápidos
-            </h1>
-
-            <p
-              style={{
-                margin: "0",
-                opacity: 0.9,
-                fontSize: "14px",
-                fontWeight: "500",
-              }}
-            >
-              Acceso directo a servicios externos
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Contenido principal */}
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "40px 20px",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "20px",
-          }}
-        >
+        <div className="card-grid card-grid--columns-3">
           {links.map((link) => (
             <a
               key={link.id}
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-              }}
+              className="link-card"
             >
-              <div
-                style={{
-                  background: "white",
-                  borderRadius: "12px",
-                  padding: "24px",
-                  border: "2px solid #e5e7eb",
-                  cursor: "pointer",
-                  boxShadow:
-                    "0 2px 8px rgba(0,0,0,0.08)",
-                  transition:
-                    "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "14px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform =
-                    "translateY(-6px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 12px 24px rgba(0,0,0,0.15)";
-                  e.currentTarget.style.borderColor =
-                    link.color;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform =
-                    "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.08)";
-                  e.currentTarget.style.borderColor =
-                    "#e5e7eb";
-                }}
-              >
-                {/* Icon */}
-                <div
-                  style={{
-                    width: "44px",
-                    height: "44px",
-                    borderRadius: "10px",
-                    background:
-                      link.bgColor,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent:
-                      "center",
-                    fontSize: "22px",
-                  }}
-                >
-                  {link.icon}
-                </div>
-
-                {/* Content */}
-                <div>
-                  <h3
-                    style={{
-                      margin: "0 0 6px 0",
-                      fontSize: "17px",
-                      fontWeight: "700",
-                      color: "#1f2937",
-                    }}
-                  >
-                    {link.name}
-                  </h3>
-
-                  <p
-                    style={{
-                      margin: "0 0 8px 0",
-                      fontSize: "13px",
-                      color: "#6b7280",
-                      lineHeight: "1.4",
-                    }}
-                  >
-                    {link.description}
-                  </p>
-
-                  <p
-                    style={{
-                      margin: "0",
-                      fontSize: "12px",
-                      color: link.color,
-                      fontWeight: "600",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    Ir al sitio →
-                  </p>
-                </div>
+              <div className={`link-card__icon link-card__icon--${link.variant}`}>
+                {link.icon}
               </div>
+              <div>
+                <h3>{link.name}</h3>
+                <p className="muted-text">{link.description}</p>
+              </div>
+              <span className="badge badge--info">Ir al sitio</span>
             </a>
           ))}
         </div>
 
-        {/* Info Box */}
-        <div
-          style={{
-            marginTop: "40px",
-            padding: "24px",
-            background: "#dcfce7",
-            borderRadius: "12px",
-            borderLeft: "4px solid #10b981",
-          }}
-        >
-          <p
-            style={{
-              margin: "0",
-              color: "#166534",
-              fontSize: "14px",
-              lineHeight: "1.6",
-            }}
-          >
-            ℹ️ Los enlaces se abren en una nueva pestaña. Asegúrate de tener
-            las credenciales correctas antes de acceder a cada servicio.
+        <section className="card alert-panel alert-panel--success">
+          <p className="muted-text">
+            ℹ️ Los enlaces se abren en una nueva pestaña. Asegúrate de tener las credenciales correctas antes de acceder a cada servicio.
           </p>
-        </div>
+        </section>
 
-        {/* Quick tips */}
-        <div
-          style={{
-            marginTop: "24px",
-            display: "grid",
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(250px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          <div
-            style={{
-              padding: "16px",
-              background: "white",
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-            }}
-          >
-            <p
-              style={{
-                margin: "0 0 8px 0",
-                fontSize: "13px",
-                fontWeight: "600",
-                color: "#1f2937",
-              }}
-            >
-              💡 Consejo
-            </p>
-
-            <p
-              style={{
-                margin: "0",
-                fontSize: "12px",
-                color: "#6b7280",
-                lineHeight: "1.5",
-              }}
-            >
-              Guarda esta página en marcadores para acceso rápido.
-            </p>
-          </div>
-        </div>
+        <section className="card">
+          <h3>Consejo rápido</h3>
+          <p className="muted-text">
+            Guarda esta página en marcadores para acceso inmediato a tus herramientas más utilizadas.
+          </p>
+        </section>
       </div>
-    </div>
+    </PageShell>
   );
 }

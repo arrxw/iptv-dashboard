@@ -1,174 +1,97 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { supabase } from "../services/supabase";
 import NewClient from "./NewClient";
 import { formatDate } from "../utils/dateUtils";
-import { useNavigate } from "react-router-dom";
-
-const styles = `
-  @keyframes pulse-subtle {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-  }
-  
-  .pulse-subtle {
-    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-`;
+import PageHeader from "../components/PageHeader";
+import PageShell from "../components/PageShell";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Dashboard() {
   const [clients, setClients] = useState<any[]>([]);
+  const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [showNewClient, setShowNewClient] =
-  useState(false);
-  const [showUpcoming, setShowUpcoming] =
-  useState(false);
-
+  const [showNewClient, setShowNewClient] = useState(false);
+  const [showUpcoming, setShowUpcoming] = useState(false);
   const navigate = useNavigate();
 
-  function getMinDaysRemaining(
-    clientId: string
-  ): number {
-    const clientDevices = devices.filter(
-      (d) => d.client_id === clientId
-    );
-    if (clientDevices.length === 0)
-      return 999;
-
-    return Math.min(
-      ...clientDevices.map((d) =>
-        daysRemaining(d.end_date)
-      )
-    );
+  function getMinDaysRemaining(clientId: string): number {
+    const clientDevices = devices.filter((d) => d.client_id === clientId);
+    if (clientDevices.length === 0) return 999;
+    return Math.min(...clientDevices.map((d) => daysRemaining(d.end_date)));
   }
 
-  function daysRemaining(
-    endDate: string
-  ): number {
-    const today =
-      new Date().getTime();
-
-    const end =
-      new Date(endDate).getTime();
-
-    const diff =
-      end - today;
-
-    return Math.ceil(
-      diff /
-        (1000 * 60 * 60 * 24)
-    );
+  function daysRemaining(endDate: string): number {
+    const today = new Date().getTime();
+    const end = new Date(endDate).getTime();
+    const diff = end - today;
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  function getAlertStatus(
-    minDays: number
-  ): "normal" | "warning" | "danger" | "critical" {
-    if (minDays < 7)
-      return "critical";
-    if (minDays < 15)
-      return "danger";
-    if (minDays < 30)
-      return "warning";
+  function getAlertStatus(minDays: number): "normal" | "warning" | "danger" | "critical" {
+    if (minDays < 7) return "critical";
+    if (minDays < 15) return "danger";
+    if (minDays < 30) return "warning";
     return "normal";
   }
-
-  const [devices, setDevices] =
-    useState<any[]>([]);
 
   async function logout() {
     await supabase.auth.signOut();
   }
 
-  async function deleteClient(
-    clientId: string,
-    clientName: string
-  ) {
-    const confirmDelete = window.prompt(
-      `Escribe "${clientName}" para eliminar`
-    );
+  async function deleteClient(clientId: string, clientName: string) {
+    const confirmDelete = window.prompt(`Escribe "${clientName}" para eliminar`);
+    if (confirmDelete !== clientName) return;
 
-    if (confirmDelete !== clientName) {
-      return;
-    }
-
-    const { error: devicesError } =
-      await supabase
-        .from("devices")
-        .delete()
-        .eq("client_id", clientId);
-
+    const { error: devicesError } = await supabase.from("devices").delete().eq("client_id", clientId);
     if (devicesError) {
       alert(devicesError.message);
       return;
     }
 
-    const { error } =
-      await supabase
-        .from("clients")
-        .delete()
-        .eq("id", clientId);
-
+    const { error } = await supabase.from("clients").delete().eq("id", clientId);
     if (error) {
       alert(error.message);
       return;
     }
 
     await loadClients();
-
     alert("Cliente eliminado");
   }
 
   async function loadClients() {
-    const { data, error } =
-      await supabase
-        .from("clients")
-        .select("*")
-        .order("name");
-
+    const { data, error } = await supabase.from("clients").select("*").order("name");
     if (error) {
       console.error(error);
       alert(error.message);
       return;
     }
 
-    const {
-      data: devicesData,
-      error: devicesError,
-    } = await supabase
-      .from("devices")
-      .select("*");
-
+    const { data: devicesData, error: devicesError } = await supabase.from("devices").select("*");
     if (devicesError) {
       console.error(devicesError);
     }
 
     setDevices(devicesData || []);
 
-    const clientsWithCount =
-      await Promise.all(
-        (data || []).map(
-          async (client) => {
-            const {
-              count,
-            } = await supabase
-              .from("devices")
-              .select("*", {
-                count: "exact",
-                head: true,
-              })
-              .eq(
-                "client_id",
-                client.id
-              );
+    const clientsWithCount = await Promise.all(
+      (data || []).map(async (client) => {
+        const { count } = await supabase
+          .from("devices")
+          .select("*", {
+            count: "exact",
+            head: true,
+          })
+          .eq("client_id", client.id);
 
-            return {
-              ...client,
-              devicesCount:
-                count || 0,
-            };
-          }
-        )
-      );
+        return {
+          ...client,
+          devicesCount: count || 0,
+        };
+      })
+    );
 
     setClients(clientsWithCount);
     setLoading(false);
@@ -177,973 +100,197 @@ export default function Dashboard() {
   useEffect(() => {
     loadClients();
   }, []);
-  
-  const filteredClients =
-  clients.filter(
-    (client) =>
-      client.name
-        .toLowerCase()
-        .includes(
-          search.toLowerCase()
-        ) ||
 
-      (client.notes || "")
-        .toLowerCase()
-        .includes(
-          search.toLowerCase()
-        )
+  const filteredClients = clients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(search.toLowerCase()) ||
+      (client.notes || "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background:
-            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent:
-            "center",
-        }}
-      >
-        <p
-          style={{
-            color: "white",
-            fontSize: "18px",
-          }}
-        >
-          Cargando...
-        </p>
-      </div>
-    );
+    return <LoadingScreen message="Cargando clientes..." />;
   }
 
-  const upcomingDevices =
-    devices
-      .filter((d) =>
-        daysRemaining(d.end_date) <=
-        30 &&
-        daysRemaining(d.end_date) >
-        0
-      )
-      .sort(
-        (a, b) =>
-          daysRemaining(a.end_date) -
-          daysRemaining(b.end_date)
-        );
-  const expiredDevices = devices.filter((device) => {
-  return daysRemaining(device.end_date) <= 0;
-});
-    
+  const upcomingDevices = devices
+    .filter((d) => daysRemaining(d.end_date) <= 30 && daysRemaining(d.end_date) > 0)
+    .sort((a, b) => daysRemaining(a.end_date) - daysRemaining(b.end_date));
+
+  const expiredDevices = devices.filter((device) => daysRemaining(device.end_date) <= 0);
 
   return (
-    <>
-      <style>{styles}</style>
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#f8f9fa",
-          paddingBottom: "40px",
-        }}
-      >
-        {/* Cabecera moderna */}
-        <div
-          style={{
-            background:
-              "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            padding: "40px 20px",
-            color: "white",
-            position: "relative",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              position: "relative",
-              zIndex: 2,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems: "flex-start",
-                flexWrap: "wrap",
-                gap: "20px",
-              }}
-            >
-              <div>
-                <h1
-                  style={{
-                    margin: "0 0 8px 0",
-                    fontSize: "32px",
-                    fontWeight:
-                      "700",
-                    letterSpacing:
-                      "-1px",
-                  }}
-                >
-                  IPTV Manager
-                </h1>
-
-                <p
-                  style={{
-                    margin: "0",
-                    opacity: 0.9,
-                    fontSize: "14px",
-                    fontWeight: "500",
-                  }}
-                >
-                  Gestión de clientes
-                  y dispositivos
-                </p>
-              </div>
-
-              <button
-                onClick={logout}
-                style={{
-                  padding: "10px 20px",
-                  borderRadius:
-                    "8px",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  background:
-                    "rgba(255,255,255,0.1)",
-                  color: "white",
-                  cursor: "pointer",
-                  fontWeight: "500",
-                  fontSize: "14px",
-                  transition:
-                    "all 0.2s",
-                  backdropFilter:
-                    "blur(10px)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background =
-                    "rgba(255,255,255,0.1)";
-                }}
-              >
-                ← Cerrar sesión
-              </button>
-
-            <button
-  onClick={() => navigate("/settings")}
-  style={{
-    padding: "12px 24px",
-    borderRadius: "10px",
-    border: "none",
-    background: "white",
-    color: "#333",
-    cursor: "pointer",
-    fontWeight: "600",
-    fontSize: "14px",
-    transition: "all 0.2s",
-    boxShadow:
-      "0 2px 8px rgba(0,0,0,0.08)",
-  }}
->
-  ⚙️ Configuración
-</button>
-
-<div
-  onClick={() => navigate("/subscriptions")}
-  style={{
-    padding: "12px 24px",
-    borderRadius: "10px",
-    border: "none",
-    background: "white",
-    color: "#333",
-    cursor: "pointer",
-    fontWeight: "600",
-    fontSize: "12px",
-    transition: "all 0.2s",
-    boxShadow:
-      "0 2px 8px rgba(0,0,0,0.08)",
-  }}
->
-  <h2>Suscripciones Gamsgo</h2>
-
-  <p>
-    Gestionar suscripciones
-  </p>
-</div>
-
+    <PageShell>
+      <div className="dashboard-page">
+        <PageHeader
+          title="IPTV Manager"
+          subtitle="Visión completa de clientes, dispositivos y fechas de caducidad."
+          variant="hero"
+          actions={
+            <div className="dashboard-header-actions">
+              <button className="button button--secondary button--sm" onClick={() => navigate("/subscriptions")}>Suscripciones</button>
+              <button className="button button--secondary button--sm" onClick={logout}>Cerrar sesión</button>
             </div>
+          }
+        />
+
+        <section className="dashboard-toolbar">
+          <div className="dashboard-search">
+            <input
+              className="input"
+              placeholder="Buscar cliente..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-        </div>
 
-        {/* Contenido principal */}
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            padding: "40px 20px 0",
-          }}
-        >
-
-<div
-  style={{
-    marginBottom: "30px",
-    display: "flex",
-    gap: "8px",
-  }}
->
-  <input
-    placeholder="🔍 Buscar cliente..."
-    value={search}
-    onChange={(e) =>
-      setSearch(
-        e.target.value
-      )
-    }
-    style={{
-      flex: 1,
-      padding: "14px 18px",
-      borderRadius: "12px",
-      border:
-        "2px solid #e5e7eb",
-      fontSize: "15px",
-      transition:
-        "all 0.2s",
-      boxSizing:
-        "border-box",
-      boxShadow:
-        "0 2px 8px rgba(0,0,0,0.05)",
-    }}
-    onFocus={(e) => {
-      e.currentTarget.style.borderColor =
-        "#667eea";
-      e.currentTarget.style.boxShadow =
-        "0 4px 12px rgba(102, 126, 234, 0.15)";
-    }}
-    onBlur={(e) => {
-      e.currentTarget.style.borderColor =
-        "#e5e7eb";
-      e.currentTarget.style.boxShadow =
-        "0 2px 8px rgba(0,0,0,0.05)";
-    }}
-  />
-
- {search && (
-   <button
-     onClick={() =>
-       setSearch("")
-     }
-     style={{
-       padding:
-         "14px 18px",
-       border: "none",
-       borderRadius:
-         "12px",
-       background:
-         "#ef4444",
-       color: "white",
-       cursor: "pointer",
-       fontWeight: "bold",
-     }}
-   >
-     ✕
-   </button>
- )}
-</div>
-           {/* Botones de acción */}
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              marginBottom: "30px",
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="dashboard-actions">
             <button
-              onClick={() =>
-                setShowNewClient(
-                  !showNewClient
-                )
-              }
-              style={{
-                padding:
-                  "12px 20px",
-                borderRadius:
-                  "10px",
-                border: "none",
-                background:
-                  showNewClient
-                    ? "#667eea"
-                    : "white",
-                color: showNewClient
-                  ? "white"
-                  : "#333",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "14px",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.08)",
-              }}
+              className="button button--primary button--sm"
+              onClick={() => setShowNewClient((value) => !value)}
             >
-              {showNewClient
-                ? "▲ Ocultar"
-                : "+ Nuevo cliente"}
+              {showNewClient ? "Ocultar formulario" : "+ Nuevo cliente"}
             </button>
-
-            {upcomingDevices.length >
-              0 && (
+            {upcomingDevices.length > 0 && (
               <button
-                onClick={() =>
-                  setShowUpcoming(
-                    !showUpcoming
-                  )
-                }
-                style={{
-                  padding:
-                    "12px 20px",
-                  borderRadius:
-                    "10px",
-                  border: "none",
-                  background:
-                    "#fef3c7",
-                  color:
-                    "#92400e",
-                  cursor:
-                    "pointer",
-                  fontWeight:
-                    "600",
-                  fontSize:
-                    "14px",
-                  boxShadow:
-                    "0 2px 8px rgba(0,0,0,0.08)",
-                }}
+                className="button button--warning button--sm"
+                onClick={() => setShowUpcoming((value) => !value)}
               >
-                ⚠️{" "}
-                {
-                  upcomingDevices.length
-                }{" "}
-                próximos
+                ⚠️ {upcomingDevices.length} próximos
               </button>
             )}
-
             <button
-              onClick={() =>
-                navigate(
-                  "/tools"
-                )
-              }
-              style={{
-                padding:
-                  "12px 20px",
-                borderRadius:
-                  "10px",
-                border: "none",
-                background:
-                  "#e0e7ff",
-                color:
-                  "#4338ca",
-                cursor:
-                  "pointer",
-                fontWeight:
-                  "600",
-                fontSize:
-                  "14px",
-                boxShadow:
-                  "0 2px 8px rgba(0,0,0,0.08)",
-              }}
+              className="button button--secondary button--sm"
+              onClick={() => navigate("/links")}
             >
-
-              🔗 Enlaces
+              Enlaces
             </button>
           </div>
-          {showNewClient && (
-            <NewClient onCreated={loadClients} />
-          )}
+        </section>
 
-          {expiredDevices.length > 0 && (
-  <div
-    style={{
-      marginBottom: "24px",
-      background: "#fef2f2",
-      border: "2px solid #ef4444",
-      borderRadius: "12px",
-      padding: "16px",
-    }}
-  >
-    <h3
-      style={{
-        marginTop: 0,
-        color: "#dc2626",
-      }}
-    >
-      🚨 Caducados ({expiredDevices.length})
-    </h3>
+        {showNewClient && <NewClient onCreated={loadClients} />}
 
-    {expiredDevices.map((device) => {
-      const client = clients.find(
-        (c) => c.id === device.client_id
-      );
-
-      const days = daysRemaining(device.end_date);
-
-      return (
-        <div
-          key={device.id}
-          onClick={() =>
-            navigate(`/client/${device.client_id}`)
-          }
-          style={{
-            background: "#fff",
-            borderRadius: "10px",
-            padding: "12px",
-            marginBottom: "10px",
-            borderLeft: "5px solid #dc2626",
-            cursor: "pointer",
-            animation: "criticalBlink 1.5s infinite",
-          }}
-        >
-          <strong>{client?.name}</strong>
-
-          <p style={{ margin: "4px 0" }}>
-            {device.alias}
-          </p>
-
-          <p
-            style={{
-              color: "#dc2626",
-              fontWeight: "700",
-            }}
-          >
-            {days === 0
-              ? "⚠️ CADUCA HOY"
-              : `⚠️ CADUCADA HACE ${Math.abs(days)} DÍAS`}
-          </p>
-        </div>
-      );
-    })}
-  </div>
-)}
-
-          {showUpcoming && (
-            <div
-              style={{
-                background: "#f9fafb",
-                borderRadius: "8px",
-                padding: "12px",
-                borderLeft: "4px solid #f97316",
-                cursor: "pointer",
-              }}
-            >
-              {upcomingDevices.map(
-                (device) => {
-                  const client =
-                    clients.find(
-                      (c) =>
-                          c.id ===
-                          device.client_id
-                      );
-
-                    const days =
-                      daysRemaining(
-                        device.end_date
-                      );
-
-                    return (
-                      <div
-                        key={
-                          device.id
-                        }
-                        style={{
-                          background:
-                            "#f9fafb",
-                          borderRadius:
-                            "8px",
-                          padding:
-                            "12px",
-                        
-                            borderLeft:
-                              days < 0
-                            ? "4px solid #dc2626"
-                            : days < 7
-                            ? "4px solid #ef4444"
-                            : days < 15
-                            ? "4px solid #f97316"
-                          : "4px solid #eab308",
-                          cursor:
-                            "pointer",
-                            animation:
-  days < 0
-    ? "criticalBlink 1.5s infinite"
-    : "none",
-                        }}
-                        onClick={() => {
-                          navigate(
-                            `/client/${device.client_id}`
-                          );
-                        }}
-                      >
-                        <p
-                          style={{
-                            margin:
-                              "0 0 4px 0",
-                            fontWeight:
-                              "600",
-                            fontSize:
-                              "14px",
-                            color:
-                              "#1f2937",
-                          }}
-                        >
-                          {
-                            client?.name
-                          }
-                        </p>
-
-                        <p
-                          style={{
-                            margin:
-                              "0 0 4px 0",
-                            fontSize:
-                              "13px",
-                            color:
-                              "#6b7280",
-                          }}
-                        >
-                          {
-                            device.alias
-                          }
-                        </p>
-
-                        <p
-                          style={{
-                            margin:
-                              "0 0 8px 0",
-                            fontSize:
-                              "12px",
-                            color:
-                              "#9ca3af",
-                          }}
-                        >
-                          {formatDate(
-                            device.end_date
-                          )}
-                        </p>
-
-                        <p
-                          style={{
-                            margin:
-                              "0",
-                            fontSize:
-                              "12px",
-                            fontWeight:
-                              "500",
-                            color:
-                              days <
-                              7
-                                ? "#dc2626"
-                                : days <
-                                  15
-                                ? "#ea580c"
-                                : "#ca8a04",
-                          }}
-                        >
-                          {days < 0
-  ? `⚠️ CADUCADA HACE ${Math.abs(days)} DÍAS`
-  : days === 0
-  ? "⚠️ CADUCA HOY"
-  : days === 1
-  ? "1 día restante"
-  : `${days} días restantes`}
-                        </p>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-          )}
-          
-
-          {/* Título de clientes */}
-          <div
-            style={{
-              display:
-                "flex",
-              justifyContent:
-                "space-between",
-              alignItems:
-                "center",
-              marginBottom:
-                "20px",
-            }}
-          >
-            <h2
-              style={{
-                margin: "0",
-                fontSize: "20px",
-                fontWeight: "600",
-                color: "#1f2937",
-              }}
-            >
-              Clientes ({
-                filteredClients.length
-              })
-            </h2>
-          </div>
-
-          {/* Grid de tarjetas */}
-          {filteredClients.length ===
-          0 ? (
-            <div
-              style={{
-                textAlign:
-                  "center",
-                padding: "40px 20px",
-                color: "#9ca3af",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "16px",
-                }}
-              >
-                {search
-                  ? "No se encontraron clientes"
-                  : "No hay clientes aún"}
-              </p>
+        {expiredDevices.length > 0 && (
+          <div className="alert-panel alert-panel--critical">
+            <strong>Caducados ({expiredDevices.length})</strong>
+            <div className="alert-list">
+              {expiredDevices.map((device) => {
+                const client = clients.find((c) => c.id === device.client_id);
+                const days = daysRemaining(device.end_date);
+                return (
+                  <button
+                    key={device.id}
+                    type="button"
+                    className="alert-item"
+                    onClick={() => navigate(`/client/${device.client_id}`)}
+                  >
+                    <div>
+                      <p className="alert-item__title">{client?.name}</p>
+                      <p className="alert-item__subtitle">{device.alias}</p>
+                    </div>
+                    <span className="badge badge--danger">
+                      {days === 0 ? "CADUCA HOY" : `CADUCADA ${Math.abs(days)}d`}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fill, minmax(300px, 1fr))",
-                gap: "20px",
-              }}
-            >
-              {filteredClients.map(
-                (client) => {
-                  const minDays =
-                    getMinDaysRemaining(
-                      client.id
-                    );
+          </div>
+        )}
 
-                  const status =
-                    getAlertStatus(
-                      minDays
-                    );
+        {showUpcoming && (
+          <div className="alert-panel alert-panel--warning">
+            <strong>Próximos a caducar</strong>
+            <div className="alert-list alert-list--stacked">
+              {upcomingDevices.map((device) => {
+                const client = clients.find((c) => c.id === device.client_id);
+                const days = daysRemaining(device.end_date);
+                const status = getAlertStatus(days);
+                return (
+                  <button
+                    type="button"
+                    key={device.id}
+                    className={`alert-item alert-item--${status}`}
+                    onClick={() => navigate(`/client/${device.client_id}`)}
+                  >
+                    <div>
+                      <p className="alert-item__title">{client?.name}</p>
+                      <p className="alert-item__subtitle">{device.alias}</p>
+                      <p className="alert-item__date">{formatDate(device.end_date)}</p>
+                    </div>
+                    <span className="status-chip">
+                      {days < 0
+                        ? `CADUCADA ${Math.abs(days)}d`
+                        : days === 0
+                        ? "HOY"
+                        : `${days}d`}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                  const cardStyles = {
-                    normal: {
-                      borderColor:
-                        "#e5e7eb",
-                    },
-                    warning: {
-                      borderColor:
-                        "#fbbf24",
-                    },
-                    danger: {
-                      borderColor:
-                        "#f97316",
-                    },
-                    critical: {
-                      borderColor:
-                        "#ef4444",
-                    },
-                  };
+        <div className="section-title">
+          <h2>Clientes ({filteredClients.length})</h2>
+        </div>
 
-                  const alertStyles = {
-                    normal: {
-                      display:
-                        "none",
-                    },
-                    warning: {
-                      color:
-                        "#ca8a04",
-                    },
-                    danger: {
-                      color:
-                        "#ea580c",
-                    },
-                    critical: {
-                      color:
-                        "#dc2626",
-                    },
-                  };
+        {filteredClients.length === 0 ? (
+          <div className="empty-state card">
+            <p>{search ? "No se encontraron clientes." : "No hay clientes aún."}</p>
+          </div>
+        ) : (
+          <div className="card-grid card-grid--columns-3">
+            {filteredClients.map((client) => {
+              const minDays = getMinDaysRemaining(client.id);
+              const status = getAlertStatus(minDays);
+              return (
+                <button
+                  key={client.id}
+                  type="button"
+                  className={`client-card client-card--${status}`}
+                  onClick={() => navigate(`/client/${client.id}`)}
+                >
+                  <div className="client-card__header">
+                    <div>
+                      <h3>{client.name}</h3>
+                      <p className="muted-text">
+                        {client.whatsapp || "Sin WhatsApp"}
+                      </p>
+                    </div>
+                    {minDays < 30 && (
+                      <span className={`badge badge--${status === "critical" ? "danger" : status}`}>{minDays === 1 ? "Hoy" : `${minDays}d`}</span>
+                    )}
+                  </div>
 
-                  return (
-                    <div
-                      key={client.id}
-                      onClick={() =>
-                        navigate(
-                          `/client/${client.id}`
-                        )
-                      }
-                      className={
-                        status ===
-                        "critical"
-                          ? "pulse-subtle"
-                          : ""
-                      }
-                      style={{
-                        background:
-                          "white",
-                        borderRadius:
-                          "12px",
-                        padding:
-                          "24px",
-                        border:
-                          "2px solid",
-                        ...cardStyles[
-                          status
-                        ],
-                        cursor:
-                          "pointer",
-                        boxShadow:
-                          "0 2px 8px rgba(0,0,0,0.08)",
-                        transition:
-                          "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                      }}
-                      onMouseEnter={(
-                        e
-                      ) => {
-                        e.currentTarget.style.transform =
-                          "translateY(-4px)";
-                        e.currentTarget.style.boxShadow =
-                          "0 12px 24px rgba(0,0,0,0.15)";
-                      }}
-                      onMouseLeave={(
-                        e
-                      ) => {
-                        e.currentTarget.style.transform =
-                          "translateY(0)";
-                        e.currentTarget.style.boxShadow =
-                          "0 2px 8px rgba(0,0,0,0.08)";
+                  <div className="client-card__content">
+                    <div className="client-card__row">
+                      <span className="card-pill">{client.devicesCount} dispositivo{client.devicesCount !== 1 ? "s" : ""}</span>
+                    </div>
+                    {minDays < 30 && (
+                      <p className="client-card__status">
+                        ⏰ Caduca en {minDays === 1 ? "1 día" : `${minDays} días`}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="client-card__footer">
+                    <button
+                      type="button"
+                      className="button button--secondary button--sm"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        deleteClient(client.id, client.name);
                       }}
                     >
-                      {/* Cabecera tarjeta */}
-                      <div
-                        style={{
-                          display:
-                            "flex",
-                          justifyContent:
-                            "space-between",
-                          alignItems:
-                            "flex-start",
-                          marginBottom:
-                            "12px",
-                        }}
-                      >
-                        <div>
-                          <h3
-                            style={{
-                              margin:
-                                "0",
-                              fontSize:
-                                "18px",
-                              fontWeight:
-                                "700",
-                              color:
-                                "#1f2937",
-                            }}
-                          >
-                            {
-                              client.name
-                            }
-                          </h3>
-                        </div>
-
-                        {minDays <
-                          30 && (
-                          <span
-                            style={{
-                              fontSize:
-                                "12px",
-                              fontWeight:
-                                "600",
-                              padding:
-                                "4px 8px",
-                              borderRadius:
-                                "6px",
-                              background:
-                                status ===
-                                "warning"
-                                  ? "#fef3c7"
-                                  : status ===
-                                    "danger"
-                                  ? "#fed7aa"
-                                  : "#fecaca",
-                              color:
-                                status ===
-                                "warning"
-                                  ? "#ca8a04"
-                                  : status ===
-                                  "danger"
-                                  ? "#ea580c"
-                                  : "#dc2626",
-                              ...alertStyles[
-                                status
-                              ],
-                            }}
-                          >
-                            {minDays ===
-                            1
-                              ? "Hoy"
-                              : `${minDays}d`}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Información */}
-                      <div
-                        style={{
-                          marginBottom:
-                            "16px",
-                        }}
-                      >
-                        {
-                          client.whatsapp && (
-                            <p
-                              style={{
-                                margin:
-                                  "0 0 8px 0",
-                                fontSize:
-                                  "14px",
-                                color:
-                                  "#6b7280",
-                                display:
-                                  "flex",
-                                alignItems:
-                                  "center",
-                                gap: "6px",
-                              }}
-                            >
-                              <span>
-                                📱
-                              </span>
-                              {
-                                client.whatsapp
-                              }
-                            </p>
-                          )
-                        }
-
-                        <p
-                          style={{
-                            margin:
-                              "0 0 8px 0",
-                            fontSize:
-                              "14px",
-                            color:
-                              "#6b7280",
-                            display:
-                              "flex",
-                            alignItems:
-                              "center",
-                            gap: "6px",
-                          }}
-                        >
-                          <span>
-                            📺
-                          </span>
-                          {
-                            client.devicesCount
-                          }{" "}
-                          dispositivo
-                          {
-                            client.devicesCount !==
-                            1
-                              ? "s"
-                              : ""
-                          }
-                        </p>
-
-                        {minDays <
-                          30 && (
-                          <p
-                            style={{
-                              margin:
-                                "0",
-                              fontSize:
-                                "13px",
-                              fontWeight:
-                                "500",
-                              ...alertStyles[
-                                status
-                              ],
-                            }}
-                          >
-                            ⏰ Caduca en{" "}
-                            {minDays ===
-                            1
-                              ? "1 día"
-                              : `${minDays} días`}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Botón eliminar */}
-                      <button
-                        onClick={(
-                          e
-                        ) => {
-                          e.stopPropagation();
-
-                          deleteClient(
-                            client.id,
-                            client.name
-                          );
-                        }}
-                        style={{
-                          width:
-                            "100%",
-                          padding:
-                            "10px",
-                          borderRadius:
-                            "8px",
-                          border: "1px solid #e5e7eb",
-                          background:
-                            "white",
-                          color:
-                            "#dc2626",
-                          cursor:
-                            "pointer",
-                          fontSize:
-                            "13px",
-                          fontWeight:
-                            "500",
-                          transition:
-                            "all 0.2s",
-                        }}
-                        onMouseEnter={(
-                          e
-                        ) => {
-                          e.currentTarget.style.background =
-                            "#fee2e2";
-                          e.currentTarget.style.borderColor =
-                            "#fca5a5";
-                        }}
-                        onMouseLeave={(
-                          e
-                        ) => {
-                          e.currentTarget.style.background =
-                            "white";
-                          e.currentTarget.style.borderColor =
-                            "#e5e7eb";
-                        }}
-                      >
-                        🗑 Eliminar
-                      </button>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          )}
-        </div>
+                      🗑 Eliminar
+                    </button>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </>
+    </PageShell>
   );
 }

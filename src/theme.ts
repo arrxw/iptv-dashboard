@@ -1,44 +1,36 @@
 export const theme = {
   colors: {
-    // Color principal de la aplicación
-    primary: "#550efa",
-
-    // Color principal al pasar el ratón
-    primaryHover: "#7c3aed",
-
-    // Fondo general
-    background: "#f8fafc",
-
-    // Fondo de tarjetas y paneles
+    primary: "#5b4bff",
+    primaryHover: "#4338ca",
+    accent: "#5b4bff",
+    accentStrong: "#4338ca",
+    accentSoft: "rgba(91, 75, 255, 0.14)",
+    background: "#f4f6fb",
     surface: "#ffffff",
-
-    // Texto principal
+    surfaceSoft: "#f8f9ff",
+    surfaceMuted: "#eef2ff",
     text: "#111827",
-
-    // Texto secundario
-    muted: "#6b7280",
-
-    // Bordes
-    border: "#e5e7eb",
-
-    // Éxito
-    success: "#22c55e",
-
-    // Error
-    danger: "#ef4444",
-
-    // Avisos
+    heading: "#0f172a",
+    muted: "#64748b",
+    border: "#e5e7ef",
+    success: "#10b981",
+    successSoft: "rgba(16, 185, 129, 0.12)",
     warning: "#f59e0b",
+    warningSoft: "rgba(245, 158, 11, 0.14)",
+    danger: "#ef4444",
+    dangerSoft: "rgba(239, 68, 68, 0.12)",
+    info: "#0ea5e9",
+    infoSoft: "rgba(14, 165, 233, 0.12)",
   },
 
   radius: {
-    small: "8px",
-    medium: "12px",
-    large: "16px",
+    sm: "12px",
+    md: "18px",
+    lg: "26px",
   },
 
   shadows: {
-    small: "0 2px 8px rgba(0, 0, 0, 0.06)",
-    medium: "0 8px 24px rgba(0, 0, 0, 0.08)",
+    soft: "0 10px 24px rgba(15, 23, 42, 0.04)",
+    shadow: "0 20px 50px rgba(15, 23, 42, 0.08)",
   },
 };

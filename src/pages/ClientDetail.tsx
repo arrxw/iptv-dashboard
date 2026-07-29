@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { supabase } from "../services/supabase";
@@ -8,6 +8,9 @@ import { formatDate, daysRemaining } from "../utils/dateUtils";
 
 import type { Client } from "../types/client";
 import type { Device } from "../types/device";
+import PageShell from "../components/PageShell";
+import PageHeader from "../components/PageHeader";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function ClientDetail() {
   const { id } = useParams();
@@ -17,15 +20,12 @@ export default function ClientDetail() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDevice, setShowAddDevice] = useState(false);
-
-  // Confirmación de renovación
   const [renewalConfirm, setRenewalConfirm] = useState<{
     device: Device;
     months: number;
-    step: 'first' | 'second';
+    step: "first" | "second";
   } | null>(null);
 
-  // Form states
   const [alias, setAlias] = useState("");
   const [mac, setMac] = useState("");
   const [app, setApp] = useState("");
@@ -72,10 +72,7 @@ export default function ClientDetail() {
   }
 
   async function loadApps() {
-    const { data } = await supabase
-      .from("apps")
-      .select("*")
-      .order("name");
+    const { data } = await supabase.from("apps").select("*").order("name");
     setAppsList(data || []);
   }
 
@@ -84,22 +81,21 @@ export default function ClientDetail() {
     loadApps();
   }, [id]);
 
-  async function copyMac(mac: string) {
-    await navigator.clipboard.writeText(mac);
+  async function copyMac(macAddress: string) {
+    await navigator.clipboard.writeText(macAddress);
     alert("MAC copiada");
   }
 
   async function addDevice() {
     if (!id) return;
-
     if (!alias || !mac || !startDate || !duration) {
       alert("Completa los campos obligatorios");
       return;
     }
 
-    const start = new Date(startDate);
-    start.setMonth(start.getMonth() + parseInt(duration));
-    const calculatedEndDate = start.toISOString().split("T")[0];
+    const calculatedEndDate = new Date(startDate);
+    calculatedEndDate.setMonth(calculatedEndDate.getMonth() + parseInt(duration, 10));
+    const endDate = calculatedEndDate.toISOString().split("T")[0];
 
     const { error } = await supabase.from("devices").insert({
       client_id: id,
@@ -107,7 +103,7 @@ export default function ClientDetail() {
       mac_address: mac,
       app_name: app,
       start_date: startDate,
-      end_date: calculatedEndDate,
+      end_date: endDate,
       notes,
       active: true,
     });
@@ -130,61 +126,43 @@ export default function ClientDetail() {
   }
 
   async function renewDevice(device: Device, months: number) {
-    // Mostrar primer diálogo de confirmación
-    setRenewalConfirm({
-      device,
-      months,
-      step: 'first',
-    });
+    setRenewalConfirm({ device, months, step: "first" });
   }
 
   async function confirmRenewal() {
     if (!renewalConfirm) return;
-
     const { device, months, step } = renewalConfirm;
 
-    if (step === 'first') {
-      // Mostrar segundo diálogo
-      setRenewalConfirm({
-        device,
-        months,
-        step: 'second',
-      });
-    } else {
-      // Ejecutar renovación
-      const current = new Date(device.end_date);
-      current.setMonth(current.getMonth() + months);
-      const newDate = current.toISOString().split("T")[0];
-
-      const { error } = await supabase
-        .from("devices")
-        .update({
-          end_date: newDate,
-          active: true,
-        })
-        .eq("id", device.id);
-
-      if (error) {
-        alert(error.message);
-        setRenewalConfirm(null);
-        return;
-      }
-
-      setRenewalConfirm(null);
-      await loadData();
-      alert("Dispositivo renovado correctamente");
+    if (step === "first") {
+      setRenewalConfirm({ device, months, step: "second" });
+      return;
     }
+
+    const current = new Date(device.end_date);
+    current.setMonth(current.getMonth() + months);
+    const newDate = current.toISOString().split("T")[0];
+
+    const { error } = await supabase
+      .from("devices")
+      .update({ end_date: newDate, active: true })
+      .eq("id", device.id);
+
+    if (error) {
+      alert(error.message);
+      setRenewalConfirm(null);
+      return;
+    }
+
+    setRenewalConfirm(null);
+    await loadData();
+    alert("Dispositivo renovado correctamente");
   }
 
   async function deleteDevice(deviceId: string) {
     const confirmDelete = window.prompt("Escribe ELIMINAR");
-
-    if (confirmDelete !== "ELIMINAR") {
-      return;
-    }
+    if (confirmDelete !== "ELIMINAR") return;
 
     const { error } = await supabase.from("devices").delete().eq("id", deviceId);
-
     if (error) {
       alert(error.message);
       return;
@@ -215,861 +193,248 @@ export default function ClientDetail() {
   }
 
   if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#f8f9fa",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <p style={{ color: "#9ca3af" }}>Cargando...</p>
-      </div>
-    );
+    return <LoadingScreen message="Cargando cliente..." />;
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f8f9fa",
-        paddingBottom: "40px",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          padding: "30px 20px",
-          color: "white",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-          }}
-        >
-          <button
-            onClick={() => navigate("/")}
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "white",
-              padding: "8px 16px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "500",
-              transition: "all 0.2s",
-              marginBottom: "20px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-            }}
-          >
-            ← Volver al Dashboard
-          </button>
+    <PageShell>
+      <div className="client-detail-page">
+        <PageHeader
+          title={clientName || "Cliente"}
+          subtitle="Gestión de información y dispositivos del cliente"
+          actions={
+            <button className="button button--secondary button--sm" onClick={() => navigate("/")}>Volver al dashboard</button>
+          }
+        />
 
-          <h1
-            style={{
-              margin: "0",
-              fontSize: "28px",
-              fontWeight: "700",
-              letterSpacing: "-1px",
-            }}
-          >
-            {clientName || "Cliente"}
-          </h1>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "30px 20px",
-        }}
-      >
-        {/* Two Column Grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-            gap: "24px",
-            marginBottom: "30px",
-          }}
-        >
-          {/* Card: Datos Cliente */}
-          <div
-            style={{
-              background: "white",
-              borderRadius: "12px",
-              padding: "24px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h2
-              style={{
-                margin: "0 0 20px 0",
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#1f2937",
-              }}
-            >
-              📋 Datos del Cliente
-            </h2>
-
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: "#6b7280",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                }}
-              >
-                Nombre
-              </label>
-              <input
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder="Nombre del cliente"
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
-                  fontSize: "14px",
-                  fontFamily: "inherit",
-                  boxSizing: "border-box",
-                  transition: "all 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#667eea";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
+        <div className="grid cols-2 gap-24">
+          <section className="card">
+            <div className="card__header">
+              <h2>Datos del cliente</h2>
             </div>
+            <div className="card__body">
+              <div className="form-field">
+                <label className="form-field__label">Nombre</label>
+                <input
+                  className="input"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Nombre del cliente"
+                />
+              </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: "#6b7280",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                }}
-              >
-                WhatsApp
-              </label>
-              <input
-                value={clientWhatsapp}
-                onChange={(e) => setClientWhatsapp(e.target.value)}
-                placeholder="+34 666 123 456"
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
-                  fontSize: "14px",
-                  fontFamily: "inherit",
-                  boxSizing: "border-box",
-                  transition: "all 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#667eea";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
+              <div className="form-field">
+                <label className="form-field__label">WhatsApp</label>
+                <input
+                  className="input"
+                  value={clientWhatsapp}
+                  onChange={(e) => setClientWhatsapp(e.target.value)}
+                  placeholder="+34 666 123 456"
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-field__label">URL del servidor</label>
+                <textarea
+                  className="textarea"
+                  value={clientNotes}
+                  onChange={(e) => setClientNotes(e.target.value)}
+                  placeholder="Url del servidor o notas adicionales..."
+                />
+              </div>
             </div>
-
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "12px",
-                  fontWeight: "600",
-                  color: "#6b7280",
-                  marginBottom: "6px",
-                  textTransform: "uppercase",
-                }}
-              >
-                URL del Servidor
-              </label>
-              <textarea
-                value={clientNotes}
-                onChange={(e) => setClientNotes(e.target.value)}
-                placeholder="Url del servidor o notas adicionales..."
-                style={{
-                  width: "100%",
-                  minHeight: "120px",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
-                  fontSize: "14px",
-                  fontFamily: "inherit",
-                  boxSizing: "border-box",
-                  resize: "vertical",
-                  transition: "all 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#667eea";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(102, 126, 234, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e5e7eb";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
-            </div>
-
-            <button
-              onClick={saveClient}
-              style={{
-                width: "100%",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "none",
-                background: "#667eea",
-                color: "white",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "14px",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "#5568d3";
-                e.currentTarget.style.transform = "translateY(-2px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "#667eea";
-                e.currentTarget.style.transform = "translateY(0)";
-              }}
-            >
-              ✓ Guardar Cliente
-            </button>
-          </div>
-
-          {/* Card: Dispositivos */}
-          <div
-            style={{
-              background: "white",
-              borderRadius: "12px",
-              padding: "24px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <h2
-                style={{
-                  margin: "0",
-                  fontSize: "18px",
-                  fontWeight: "600",
-                  color: "#1f2937",
-                }}
-              >
-                📱 Dispositivos ({devices.length})
-              </h2>
-
-              <button
-                onClick={() => setShowAddDevice(!showAddDevice)}
-                style={{
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "none",
-                  background: "#667eea",
-                  color: "white",
-                  cursor: "pointer",
-                  fontWeight: "600",
-                  fontSize: "12px",
-                  transition: "all 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#5568d3";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#667eea";
-                }}
-              >
-                {showAddDevice ? "✕ Cancelar" : "+ Añadir"}
+            <div className="card__footer">
+              <button className="button button--primary button--lg" type="button" onClick={saveClient}>
+                Guardar cliente
               </button>
             </div>
+          </section>
 
-            {devices.length === 0 ? (
-              <p style={{ color: "#9ca3af", fontSize: "14px", margin: "0" }}>
-                Sin dispositivos
-              </p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {devices.map((device) => (
-                  <div
-                    key={device.id}
-                    style={{
-                      background: "#f9fafb",
-                      padding: "12px",
-                      borderRadius: "8px",
-                      borderLeft: "3px solid #667eea",
-                    }}
-                  >
-                    <p
-                      style={{
-                        margin: "0 0 4px 0",
-                        fontWeight: "600",
-                        fontSize: "14px",
-                        color: "#1f2937",
-                      }}
-                    >
-                      {device.alias}
-                    </p>
-                    <p
-                      style={{
-                        margin: "0 0 8px 0",
-                        fontSize: "13px",
-                        color: "#6b7280",
-                      }}
-                    >
-                      MAC:{" "}
-                      <code
-                        style={{
-                          background: "white",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {device.mac_address}
-                      </code>
-                    </p>
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                      <button
-                        onClick={() => copyMac(device.mac_address)}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          borderRadius: "4px",
-                          border: "1px solid #e5e7eb",
-                          background: "white",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#f3f4f6";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "white";
-                        }}
-                      >
-                        📋 Copiar
-                      </button>
-                      <button
-                        onClick={async () => {
-                          const newAlias = prompt("Alias", device.alias || "");
-                          if (newAlias === null) return;
+          <section className="card">
+            <div className="card__header">
+              <h2>Dispositivos ({devices.length})</h2>
+              <button className="button button--primary button--sm" type="button" onClick={() => setShowAddDevice((value) => !value)}>
+                {showAddDevice ? "Cancelar" : "+ Añadir dispositivo"}
+              </button>
+            </div>
+            <div className="card__body">
+              {devices.length === 0 ? (
+                <p className="muted-text">Sin dispositivos</p>
+              ) : (
+                <div className="device-list">
+                  {devices.map((device) => (
+                    <article key={device.id} className="device-card">
+                      <div className="device-card__main">
+                        <h3>{device.alias}</h3>
+                        <p className="muted-text">MAC: <span className="device-chip">{device.mac_address}</span></p>
+                      </div>
 
-                          const newMac = prompt("MAC", device.mac_address);
-                          if (newMac === null) return;
+                      <div className="device-card__meta">
+                        <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
+                          Copiar MAC
+                        </button>
+                        <button
+                          className="button button--secondary button--sm"
+                          type="button"
+                          onClick={async () => {
+                            const newAlias = prompt("Alias", device.alias || "");
+                            if (newAlias === null) return;
 
-                          const newApp = prompt("App IPTV", device.app_name || "");
-                          if (newApp === null) return;
+                            const newMac = prompt("MAC", device.mac_address);
+                            if (newMac === null) return;
 
-                          const { error } = await supabase
-                            .from("devices")
-                            .update({
-                              alias: newAlias,
-                              mac_address: newMac,
-                              app_name: newApp,
-                            })
-                            .eq("id", device.id);
+                            const newApp = prompt("App IPTV", device.app_name || "");
+                            if (newApp === null) return;
 
-                          if (error) {
-                            alert(error.message);
-                            return;
-                          }
+                            const { error } = await supabase
+                              .from("devices")
+                              .update({
+                                alias: newAlias,
+                                mac_address: newMac,
+                                app_name: newApp,
+                              })
+                              .eq("id", device.id);
 
-                          await loadData();
-                          alert("Dispositivo actualizado");
-                        }}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          borderRadius: "4px",
-                          border: "1px solid #e5e7eb",
-                          background: "white",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#f3f4f6";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "white";
-                        }}
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button
-                        onClick={() => deleteDevice(device.id)}
-                        style={{
-                          padding: "4px 8px",
-                          fontSize: "12px",
-                          borderRadius: "4px",
-                          border: "1px solid #ef4444",
-                          background: "white",
-                          color: "#ef4444",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#fee2e2";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "white";
-                        }}
-                      >
-                        🗑 Eliminar
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                            if (error) {
+                              alert(error.message);
+                              return;
+                            }
+
+                            await loadData();
+                            alert("Dispositivo actualizado");
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="button button--danger button--sm"
+                          type="button"
+                          onClick={() => deleteDevice(device.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
-        {/* Panel de Renovaciones */}
         {devices.length > 0 && (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "12px",
-              padding: "24px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}
-          >
-            <h2
-              style={{
-                margin: "0 0 20px 0",
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#1f2937",
-              }}
-            >
-              ⏳ Renovaciones
-            </h2>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: "16px",
-              }}
-            >
-              {devices.map((device) => (
-                <div
-                  key={device.id}
-                  style={{
-                    background: "#f9fafb",
-                    padding: "16px",
-                    borderRadius: "8px",
-                    borderTop: "2px solid #667eea",
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: "0 0 12px 0",
-                      fontWeight: "600",
-                      fontSize: "14px",
-                      color: "#1f2937",
-                    }}
-                  >
-                    {device.alias}
-                  </p>
-
-                  <p
-                    style={{
-                      margin: "0 0 12px 0",
-                      fontSize: "12px",
-                      color: "#6b7280",
-                    }}
-                  >
-                    Vence:{" "}
-                    <strong>
-                      {formatDate(device.end_date)} ({daysRemaining(device.end_date)}{" "}
-                      días)
-                    </strong>
-                  </p>
-
-                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                    <button
-                      onClick={() => renewDevice(device, 1)}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "12px",
-                        borderRadius: "6px",
-                        border: "1px solid #e5e7eb",
-                        background: "white",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#667eea";
-                        e.currentTarget.style.color = "white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
-                        e.currentTarget.style.color = "#1f2937";
-                      }}
-                    >
-                      +1 mes
-                    </button>
-
-                    <button
-                      onClick={() => renewDevice(device, 3)}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "12px",
-                        borderRadius: "6px",
-                        border: "1px solid #e5e7eb",
-                        background: "white",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#667eea";
-                        e.currentTarget.style.color = "white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
-                        e.currentTarget.style.color = "#1f2937";
-                      }}
-                    >
-                      +3 meses
-                    </button>
-
-                    <button
-                      onClick={() => renewDevice(device, 6)}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "12px",
-                        borderRadius: "6px",
-                        border: "1px solid #e5e7eb",
-                        background: "white",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#667eea";
-                        e.currentTarget.style.color = "white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
-                        e.currentTarget.style.color = "#1f2937";
-                      }}
-                    >
-                      +6 meses
-                    </button>
-
-                    <button
-                      onClick={() => renewDevice(device, 12)}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "12px",
-                        borderRadius: "6px",
-                        border: "1px solid #e5e7eb",
-                        background: "white",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = "#667eea";
-                        e.currentTarget.style.color = "white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "white";
-                        e.currentTarget.style.color = "#1f2937";
-                      }}
-                    >
-                      +12 meses
-                    </button>
-                  </div>
-                </div>
-              ))}
+          <section className="card">
+            <div className="card__header">
+              <h2>Renovaciones</h2>
             </div>
-          </div>
+            <div className="card__body">
+              <div className="card-grid card-grid--columns-2">
+                {devices.map((device) => (
+                  <article key={device.id} className="renewal-card">
+                    <div>
+                      <h3>{device.alias}</h3>
+                      <p className="muted-text">
+                        Vence: <strong>{formatDate(device.end_date)}</strong> ({daysRemaining(device.end_date)} días)
+                      </p>
+                    </div>
+
+                    <div className="renewal-actions">
+                      {[1, 3, 6, 12].map((months) => (
+                        <button
+                          key={months}
+                          className="button button--secondary button--sm"
+                          type="button"
+                          onClick={() => renewDevice(device, months)}
+                        >
+                          +{months} mes{months > 1 ? "es" : ""}
+                        </button>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
         )}
-      </div>
 
-      {/* Modal: Añadir Dispositivo */}
-      <Modal
-        isOpen={showAddDevice}
-        onClose={() => setShowAddDevice(false)}
-        title="Añadir nuevo dispositivo"
-      >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            addDevice();
-          }}
-        >
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              Alias *
-            </label>
-            <input
-              placeholder="Nombre del dispositivo"
-              value={alias}
-              onChange={(e) => setAlias(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              MAC *
-            </label>
-            <input
-              placeholder="Dirección MAC"
-              value={mac}
-              onChange={(e) => setMac(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              App IPTV
-            </label>
-            <select
-              value={app}
-              onChange={(e) => setApp(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-                background: "white",
-              }}
-            >
-              <option value="">Seleccionar aplicación</option>
-              {appsList.map((appItem) => (
-                <option key={appItem.id} value={appItem.name}>
-                  {appItem.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              Inicio *
-            </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              Duración *
-            </label>
-            <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-                background: "white",
-              }}
-            >
-              <option value="3">3 meses</option>
-              <option value="6">6 meses</option>
-              <option value="9">9 meses</option>
-              <option value="12">12 meses</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: "16px" }}>
-            <label
-              style={{
-                display: "block",
-                fontSize: "12px",
-                fontWeight: "600",
-                color: "#6b7280",
-                marginBottom: "6px",
-                textTransform: "uppercase",
-              }}
-            >
-              Notas
-            </label>
-            <textarea
-              placeholder="Notas del dispositivo"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              style={{
-                width: "100%",
-                minHeight: "120px",
-                padding: "12px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                fontSize: "14px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-                resize: "vertical",
-              }}
-            />
-          </div>
-
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "none",
-              background: "#667eea",
-              color: "white",
-              cursor: "pointer",
-              fontWeight: "600",
-              fontSize: "14px",
-              transition: "all 0.2s",
+        <Modal isOpen={showAddDevice} onClose={() => setShowAddDevice(false)} title="Añadir nuevo dispositivo">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              addDevice();
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#5568d3";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#667eea";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
+            className="modal-form"
           >
-            + Añadir Dispositivo
-          </button>
-        </form>
-      </Modal>
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-field__label">Alias *</label>
+                <input className="input" placeholder="Nombre del dispositivo" value={alias} onChange={(e) => setAlias(e.target.value)} />
+              </div>
 
-      {/* Confirmación Renovación - Primer Paso */}
-      <ConfirmDialog
-        isOpen={renewalConfirm?.step === 'first'}
-        title="Confirmar renovación"
-        message={`¿Seguro que quieres renovar este dispositivo por ${renewalConfirm?.months || 1} ${renewalConfirm?.months === 1 ? 'mes' : 'meses'}?`}
-        onConfirm={() => confirmRenewal()}
-        onCancel={() => setRenewalConfirm(null)}
-      />
+              <div className="form-field">
+                <label className="form-field__label">MAC *</label>
+                <input className="input" placeholder="Dirección MAC" value={mac} onChange={(e) => setMac(e.target.value)} />
+              </div>
+            </div>
 
-      {/* Confirmación Renovación - Segundo Paso */}
-      <ConfirmDialog
-        isOpen={renewalConfirm?.step === 'second'}
-        title="Confirmar renovación (2/2)"
-        message="Esta acción modificará la fecha de vencimiento del dispositivo. ¿Deseas continuar?"
-        onConfirm={() => confirmRenewal()}
-        onCancel={() => setRenewalConfirm(null)}
-      />
-    </div>
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-field__label">App IPTV</label>
+                <select className="select" value={app} onChange={(e) => setApp(e.target.value)}>
+                  <option value="">Seleccionar aplicación</option>
+                  {appsList.map((appItem) => (
+                    <option key={appItem.id} value={appItem.name}>
+                      {appItem.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label className="form-field__label">Inicio *</label>
+                <input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-field__label">Duración *</label>
+                <select className="select" value={duration} onChange={(e) => setDuration(e.target.value)}>
+                  <option value="3">3 meses</option>
+                  <option value="6">6 meses</option>
+                  <option value="9">9 meses</option>
+                  <option value="12">12 meses</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label className="form-field__label">Notas</label>
+                <textarea className="textarea" placeholder="Notas del dispositivo" value={notes} onChange={(e) => setNotes(e.target.value)} />
+              </div>
+            </div>
+
+            <button type="submit" className="button button--primary button--lg">
+              Añadir dispositivo
+            </button>
+          </form>
+        </Modal>
+
+        <ConfirmDialog
+          isOpen={renewalConfirm?.step === "first"}
+          title="Confirmar renovación"
+          message={`¿Seguro que quieres renovar este dispositivo por ${renewalConfirm?.months || 1} ${renewalConfirm?.months === 1 ? "mes" : "meses"}?`}
+          onConfirm={() => confirmRenewal()}
+          onCancel={() => setRenewalConfirm(null)}
+        />
+
+        <ConfirmDialog
+          isOpen={renewalConfirm?.step === "second"}
+          title="Confirmar renovación (2/2)"
+          message="Esta acción modificará la fecha de vencimiento del dispositivo. ¿Deseas continuar?"
+          onConfirm={() => confirmRenewal()}
+          onCancel={() => setRenewalConfirm(null)}
+        />
+      </div>
+    </PageShell>
   );
 }

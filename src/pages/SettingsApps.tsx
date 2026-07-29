@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabase";
+import PageShell from "../components/PageShell";
+import PageHeader from "../components/PageHeader";
 
 interface App {
   id: string;
@@ -13,11 +15,7 @@ export default function SettingsApps() {
   const [newApp, setNewApp] = useState("");
 
   async function loadApps() {
-    const { data } = await supabase
-      .from("apps")
-      .select("*")
-      .order("name");
-
+    const { data } = await supabase.from("apps").select("*").order("name");
     setApps(data || []);
   }
 
@@ -28,11 +26,9 @@ export default function SettingsApps() {
   async function addApp() {
     if (!newApp.trim()) return;
 
-    const { error } = await supabase
-      .from("apps")
-      .insert({
-        name: newApp,
-      });
+    const { error } = await supabase.from("apps").insert({
+      name: newApp,
+    });
 
     if (error) {
       alert(error.message);
@@ -51,11 +47,7 @@ export default function SettingsApps() {
       return;
     }
 
-    const { error } = await supabase
-      .from("apps")
-      .update({ name: newName.trim() })
-      .eq("id", app.id);
-
+    const { error } = await supabase.from("apps").update({ name: newName.trim() }).eq("id", app.id);
     if (error) {
       alert(error.message);
       return;
@@ -67,11 +59,7 @@ export default function SettingsApps() {
   async function deleteApp(id: string) {
     if (!confirm("¿Seguro que quieres eliminar esta aplicación?")) return;
 
-    const { error } = await supabase
-      .from("apps")
-      .delete()
-      .eq("id", id);
-
+    const { error } = await supabase.from("apps").delete().eq("id", id);
     if (error) {
       alert(error.message);
       return;
@@ -81,123 +69,55 @@ export default function SettingsApps() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "700px",
-        margin: "40px auto",
-        padding: "20px",
-      }}
-    >
-      <button
-        onClick={() => navigate("/settings")}
-        style={{
-          background: "none",
-          border: "none",
-          color: "#667eea",
-          cursor: "pointer",
-          fontSize: "14px",
-          fontWeight: "600",
-          marginBottom: "20px",
-          padding: 0,
-          display: "flex",
-          alignItems: "center",
-          gap: "5px",
-        }}
-      >
-        ← Volver a Configuración
-      </button>
-
-      <h1 style={{ marginBottom: "20px" }}>📺 Aplicaciones IPTV</h1>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginBottom: "25px",
-        }}
-      >
-        <input
-          placeholder="Nueva aplicación..."
-          value={newApp}
-          onChange={(e) =>
-            setNewApp(e.target.value)
+    <PageShell>
+      <div className="settings-apps-page">
+        <PageHeader
+          title="Aplicaciones IPTV"
+          subtitle="Administra las aplicaciones disponibles para asignar a cada dispositivo."
+          actions={
+            <button className="button button--secondary button--sm" onClick={() => navigate("/settings")}>← Volver</button>
           }
-          style={{
-            flex: 1,
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid #ddd",
-            fontSize: "14px",
-            fontFamily: "inherit",
-          }}
         />
 
-        <button
-          onClick={addApp}
-          style={{
-            padding: "12px 24px",
-            borderRadius: "10px",
-            border: "none",
-            background: "#667eea",
-            color: "white",
-            cursor: "pointer",
-            fontWeight: "600",
-            fontSize: "14px",
-            transition: "all 0.2s",
-          }}
-        >
-          Añadir
-        </button>
-      </div>
-
-      {apps.map((app) => (
-        <div
-          key={app.id}
-          style={{
-            display: "flex",
-            justifyContent:
-              "space-between",
-            alignItems: "center",
-            padding: "15px",
-            marginBottom: "10px",
-            background: "white",
-            borderRadius: "10px",
-            boxShadow:
-              "0 2px 8px rgba(0,0,0,.08)",
-          }}
-        >
-          <span style={{ fontSize: "15px", fontWeight: "500", color: "#1f2937" }}>{app.name}</span>
-
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              onClick={() => editApp(app)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "16px",
-                padding: "5px",
-              }}
-              title="Editar"
-            >
-              ✏️
-            </button>
-            <button
-              onClick={() => deleteApp(app.id)}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: "16px",
-                padding: "5px",
-              }}
-              title="Eliminar"
-            >
-              🗑️
-            </button>
+        <section className="card">
+          <div className="card__body">
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-field__label">Nueva aplicación</label>
+                <input
+                  className="input"
+                  placeholder="Nombre de la aplicación..."
+                  value={newApp}
+                  onChange={(e) => setNewApp(e.target.value)}
+                />
+              </div>
+              <button type="button" className="button button--primary button--lg" onClick={addApp}>
+                Añadir
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        </section>
+
+        <section className="card">
+          <div className="card__body">
+            <div className="app-list">
+              {apps.map((app) => (
+                <div key={app.id} className="app-list__item">
+                  <span>{app.name}</span>
+                  <div className="app-list__actions">
+                    <button className="button button--secondary button--sm" type="button" onClick={() => editApp(app)}>
+                      Editar
+                    </button>
+                    <button className="button button--danger button--sm" type="button" onClick={() => deleteApp(app.id)}>
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    </PageShell>
   );
 }

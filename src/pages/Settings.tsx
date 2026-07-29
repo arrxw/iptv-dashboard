@@ -1,73 +1,47 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
+import PageShell from "../components/PageShell";
+import PageHeader from "../components/PageHeader";
 
 export default function Settings() {
   const navigate = useNavigate();
 
   return (
-    <div
-      style={{
-        maxWidth: "1000px",
-        margin: "40px auto",
-        padding: "20px",
-      }}
-    >
-      <h1>⚙️ Configuración</h1>
+    <PageShell>
+      <div className="settings-page">
+        <PageHeader
+          title="Configuración"
+          subtitle="Ajusta los elementos centrales de la plataforma IPTV desde un panel ordenado."
+        />
 
-      <p>
-        Desde aquí podrás administrar la aplicación.
-      </p>
+        <div className="card-grid card-grid--columns-2">
+          <button className="card card--clickable" type="button" onClick={() => navigate("/settings/apps")}>
+            <div className="card__header">
+              <h3>Aplicaciones IPTV</h3>
+            </div>
+            <div className="card__body">
+              <p className="muted-text">Gestionar aplicaciones que pueden asignarse al crear dispositivos.</p>
+            </div>
+          </button>
 
-      <div
-        style={{
-          display: "grid",
-          gap: "20px",
-          marginTop: "30px",
-        }}
-      >
-        <div
-          onClick={() =>
-            navigate("/settings/apps")
-          }
-          style={{
-            background: "white",
-            padding: "25px",
-            borderRadius: "12px",
-            cursor: "pointer",
-            boxShadow:
-              "0 2px 8px rgba(0,0,0,.08)",
-          }}
-        >
-          <h2>📺 Aplicaciones IPTV</h2>
+          <section className="card">
+            <div className="card__header">
+              <h3>Enlaces rápidos</h3>
+            </div>
+            <div className="card__body">
+              <p className="muted-text">Revisa y actualiza tus accesos directos a servicios externos.</p>
+            </div>
+          </section>
 
-          <p>
-            Gestionar aplicaciones
-          </p>
-        </div>
-
-        <div
-          style={{
-            background: "white",
-            padding: "20px",
-            borderRadius: "12px",
-            boxShadow:
-              "0 2px 8px rgba(0,0,0,.08)",
-          }}
-        >
-          🔗 Enlaces rápidos
-        </div>
-
-        <div
-          style={{
-            background: "white",
-            padding: "20px",
-            borderRadius: "12px",
-            boxShadow:
-              "0 2px 8px rgba(0,0,0,.08)",
-          }}
-        >
-          👤 Cuenta
+          <section className="card">
+            <div className="card__header">
+              <h3>Cuenta</h3>
+            </div>
+            <div className="card__body">
+              <p className="muted-text">Detalles básicos de tu cuenta, seguridad y preferencias.</p>
+            </div>
+          </section>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
