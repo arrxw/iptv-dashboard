@@ -8,6 +8,8 @@ import {
   Settings2,
   Link as LinkIcon,
   ShieldCheck,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const navItems = [
@@ -48,10 +50,31 @@ export default function Layout({
 }) {
   const location = useLocation();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("theme") === "dark";
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    try {
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = "dark";
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.style.colorScheme = "light";
+        localStorage.setItem("theme", "light");
+      }
+    } catch {}
+  }, [isDark]);
 
   const currentTitle = useMemo(() => {
     if (location.pathname.startsWith("/settings/apps")) {
@@ -116,6 +139,14 @@ export default function Layout({
             </span>
           </div>
           <div className="topbar__status">
+            <button
+              type="button"
+              aria-label={isDark ? "Modo claro" : "Modo oscuro"}
+              className="button button--ghost topbar__theme-toggle"
+              onClick={() => setIsDark((v) => !v)}
+            >
+              {isDark ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
             <span className="badge badge--success">Activa</span>
           </div>
         </div>

@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [showNewClient, setShowNewClient] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(false);
+  const [showExpired, setShowExpired] = useState(false);
   const navigate = useNavigate();
 
   function getMinDaysRemaining(clientId: string): number {
@@ -157,6 +158,14 @@ export default function Dashboard() {
                 ⚠️ {upcomingDevices.length} próximos
               </button>
             )}
+            {expiredDevices.length > 0 && (
+              <button
+                className="button button--danger button--sm"
+                onClick={() => setShowExpired((value) => !value)}
+              >
+                🚨 Caducados ({expiredDevices.length})
+              </button>
+            )}
             <button
               className="button button--secondary button--sm"
               onClick={() => navigate("/links")}
@@ -168,7 +177,7 @@ export default function Dashboard() {
 
         {showNewClient && <NewClient onCreated={loadClients} />}
 
-        {expiredDevices.length > 0 && (
+        {showExpired && expiredDevices.length > 0 && (
           <div className="alert-panel alert-panel--critical">
             <strong>Caducados ({expiredDevices.length})</strong>
             <div className="alert-list">
@@ -247,7 +256,7 @@ export default function Dashboard() {
                 <button
                   key={client.id}
                   type="button"
-                  className={`client-card client-card--${status}`}
+                  className={`client-card client-card--${status} ${minDays <= 0 ? "client-card--expired" : ""}`}
                   onClick={() => navigate(`/client/${client.id}`)}
                 >
                   <div className="client-card__header">

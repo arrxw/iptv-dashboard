@@ -35,6 +35,27 @@
   --transition-base: 0.26s ease;
 }
 
+html.dark {
+  color-scheme: dark;
+  --color-background: #071018;
+  --color-surface: #0b1220;
+  --color-surface-soft: #071820;
+  --color-surface-muted: rgba(255,255,255,0.02);
+  --color-text: #e6eef8;
+  --color-heading: #f8fafc;
+  --color-muted: #9aa6b2;
+  --color-border: rgba(255,255,255,0.06);
+  --color-accent: #7c8cff;
+  --color-accent-strong: #5b6bff;
+  --color-accent-soft: rgba(123,116,255,0.08);
+  --color-success: #34d399;
+  --color-success-soft: rgba(52,211,153,0.06);
+  --color-warning: #f59e0b;
+  --color-warning-soft: rgba(245,158,11,0.06);
+  --color-danger: #fb7185;
+  --color-danger-soft: rgba(251,113,133,0.06);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1219,4 +1240,22 @@ p {
     background: #fff5f5;
     box-shadow: 0 0 0 rgba(239,68,68,0);
   }
+}
+
+/* Tarjeta de cliente caducada: animación de advertencia crítica */
+.client-card--expired {
+  animation: criticalBlink 1.2s ease-in-out infinite;
+  border-color: rgba(239,68,68,0.85) !important;
+}
+
+.topbar__theme-toggle {
+  margin-right: 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-grid;
+  place-items: center;
 }
