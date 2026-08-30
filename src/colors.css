@@ -1,35 +1,125 @@
-/* Central color variables. Edit here to change colors across the entire site. Mobile-first light theme only. */
+/* =====================================================
+  Theme tokens: central color configuration
+  Edit here to change the app colors globally.
+  Sections are grouped so you know exactly what each color affects.
+  ===================================================== */
+
 :root {
-  color-scheme: light;
+ color-scheme: light;
 
-  --color-background: #f4f6fb;
-  --color-surface: #ffffff;
-  --color-surface-soft: #f8f9ff;
-  --color-surface-muted: #eef2ff;
-  --color-text: #111827;
-  --color-heading: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e5e7ef;
-  --color-accent: #5b4bff;
-  --color-accent-strong: #4338ca;
-  --color-accent-soft: rgba(91, 75, 255, 0.14);
-  --color-success: #10b981;
-  --color-success-soft: rgba(16, 185, 129, 0.12);
-  --color-warning: #f59e0b;
-  --color-warning-soft: rgba(245, 158, 11, 0.14);
-  --color-danger: #ef4444;
-  --color-danger-soft: rgba(239, 68, 68, 0.12);
-  --color-info: #0ea5e9;
-  --color-info-soft: rgba(14, 165, 233, 0.12);
+ /* -----------------------------------------------------
+    1) Base layout / background colors
+    Used by app shell, cards, surfaces and page backgrounds.
+    ----------------------------------------------------- */
+ --color-background: rgb(26, 147, 111);
+ --color-surface: #bac8b1;
+ --color-surface-soft: #22bf90;
+ --color-surface-muted: #a8f0da;
 
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 26px;
-  --radius-pill: 999px;
+ /* -----------------------------------------------------
+    2) Typography / borders
+    Colors for text, headings, metadata and dividers.
+    ----------------------------------------------------- */
+ --color-text: #111827;
+ --color-heading: #0f172a;
+ --color-muted: #64748b;
+ --color-border: #7b9669;
 
-  --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
-  --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.04);
+ /* -----------------------------------------------------
+    3) Brand / interactive accents
+    Main action colors for buttons, links and selected states.
+    ----------------------------------------------------- */
+ --color-accent: #404e3b;
+ --color-accent-strong: #4338ca;
+ --color-accent-soft: rgba(91, 75, 255, 0.14);
+ --color-logout: #f43f5e;
 
-  --transition-fast: 0.18s ease;
-  --transition-base: 0.26s ease;
+ /* -----------------------------------------------------
+    4) Status / semantic colors
+    Used in badges, alerts, success warning and info states.
+    ----------------------------------------------------- */
+ --color-success: #10b981;
+ --color-success-soft: rgba(16, 185, 129, 0.12);
+ --color-warning: #925d00;
+ --color-warning-soft: rgba(245, 158, 11, 0.14);
+ --color-danger: #ef4444;
+ --color-danger-soft: rgba(239, 68, 68, 0.12);
+ --color-info: #0ea5e9;
+ --color-info-soft: rgba(14, 165, 233, 0.12);
+
+ /* -----------------------------------------------------
+    5) Hero / banner colors
+    Page headers and banners that need a stronger visual accent.
+    ----------------------------------------------------- */
+ --color-bannertitulo: rgb(18, 104, 78);
+ --page-header-hero-text: #ebebeb;
+
+ /* -----------------------------------------------------
+    6) Subpages / module themes
+    Colors specific to auth, dashboards and quick-links screens.
+    ----------------------------------------------------- */
+ --page-login-start: #eef4ff;
+ --page-login-end: #f7f9ff;
+
+ /* Links page */
+ --page-links-card-hover-border: rgba(91, 75, 255, 0.2);
+ --page-links-badge-success-bg: rgba(16, 185, 129, 0.14);
+ --page-links-badge-warning-bg: rgba(245, 158, 11, 0.14);
+ --page-links-badge-danger-bg: rgba(239, 68, 68, 0.12);
+ --page-links-badge-info-bg: rgba(14, 165, 233, 0.12);
+
+ --page-links-icon-accent-from: rgba(15, 23, 42, 1);
+ --page-links-icon-accent-to: rgba(51, 65, 85, 1);
+ --page-links-icon-black-from: rgba(15, 23, 42, 1);
+ --page-links-icon-black-to: rgba(51, 65, 85, 1);
+ --page-links-icon-purple-from: rgba(118, 75, 162, 1);
+ --page-links-icon-purple-to: rgba(129, 140, 248, 1);
+ --page-links-icon-blue-from: rgba(37, 99, 235, 1);
+ --page-links-icon-blue-to: rgba(59, 130, 246, 1);
+ --page-links-icon-indigo-from: rgba(79, 70, 229, 1);
+ --page-links-icon-indigo-to: rgba(99, 102, 241, 1);
+ --page-links-icon-cyan-from: rgba(6, 182, 212, 1);
+ --page-links-icon-cyan-to: rgba(34, 211, 238, 1);
+ --page-links-icon-teal-from: rgba(13, 148, 136, 1);
+ --page-links-icon-teal-to: rgba(20, 184, 166, 1);
+ --page-links-icon-emerald-from: rgba(5, 150, 105, 1);
+ --page-links-icon-emerald-to: rgba(16, 185, 129, 1);
+ --page-links-icon-green-from: rgba(22, 163, 74, 1);
+ --page-links-icon-green-to: rgba(74, 222, 128, 1);
+ --page-links-icon-success-from: rgba(16, 185, 129, 1);
+ --page-links-icon-success-to: rgba(34, 197, 94, 1);
+ --page-links-icon-orange-from: rgba(249, 115, 22, 1);
+ --page-links-icon-orange-to: rgba(251, 146, 60, 1);
+ --page-links-icon-amber-from: rgba(217, 119, 6, 1);
+ --page-links-icon-amber-to: rgba(245, 158, 11, 1);
+ --page-links-icon-gold-from: rgba(202, 138, 4, 1);
+ --page-links-icon-gold-to: rgba(253, 224, 71, 1);
+ --page-links-icon-red-from: rgba(220, 38, 38, 1);
+ --page-links-icon-red-to: rgba(248, 113, 113, 1);
+ --page-links-icon-danger-from: rgba(239, 68, 68, 1);
+ --page-links-icon-danger-to: rgba(251, 146, 60, 1);
+ --page-links-icon-rose-from: rgba(225, 29, 72, 1);
+ --page-links-icon-rose-to: rgba(244, 63, 94, 1);
+ --page-links-icon-pink-from: rgba(219, 39, 119, 1);
+ --page-links-icon-pink-to: rgba(236, 72, 153, 1);
+ --page-links-icon-violet-from: rgba(139, 92, 246, 1);
+ --page-links-icon-violet-to: rgba(168, 85, 247, 1);
+ --page-links-icon-slate-from: rgba(71, 85, 105, 1);
+ --page-links-icon-slate-to: rgba(100, 116, 139, 1);
+
+ /* -----------------------------------------------------
+    7) Shared sizing / motion tokens
+    These do not affect colors, but are kept beside them for consistency.
+    ----------------------------------------------------- */
+ --radius-sm: 12px;
+ --radius-md: 18px;
+ --radius-lg: 26px;
+ --radius-pill: 999px;
+
+ --shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+ --shadow-soft: 0 10px 24px rgba(15, 23, 42, 0.04);
+
+ --transition-fast: 0.18s ease;
+ --transition-base: 0.26s ease;
 }
+

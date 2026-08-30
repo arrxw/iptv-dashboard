@@ -283,9 +283,7 @@ export default function Dashboard() {
                   <div className="client-card__header">
                     <div>
                       <h3>{client.name}</h3>
-                      <p className="muted-text">
-                        {client.whatsapp || "Sin WhatsApp"}
-                      </p>
+                     
                     </div>
                     {minDays < 30 && (
                       <span className={`badge badge--${status === "critical" ? "danger" : status}`}>{minDays === 1 ? "Hoy" : `${minDays}d`}</span>
