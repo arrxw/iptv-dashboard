@@ -9,18 +9,18 @@ export default function Links() {
     {
       id: 1,
       name: "Panel IPTV",
-      description: "Acceso al panel de control principal",
+      description: "Acceso al panel",
       icon: "📺",
       variant: "accent",
-      href: "https://AQUI-LINK-1.com",
+      href: "https://greatott.pro/login.php",
     },
     {
       id: 2,
       name: "Activación Elk Player",
       description: "Portal de activación para Elk Player",
-      icon: "🎮",
-      variant: "purple",
-      href: "https://AQUI-LINK-2.com",
+      icon: "🍊",
+      variant: "black",
+      href: "https://elkplayer.com/activationho",
     },
     {
       id: 3,
@@ -32,11 +32,19 @@ export default function Links() {
     },
     {
       id: 4,
-      name: "Formuler",
-      description: "Plataforma Formuler para dispositivos",
-      icon: "⚙️",
+      name: "IBOPlayer",
+      description: "Activar IBOPlayer en tu dispositivo",
+      icon: "🔴",
       variant: "success",
-      href: "https://AQUI-LINK-4.com",
+      href: "https://iboplayer.com/device/login",
+    },
+        {
+      id: 5,
+      name: "MEGA IPTV",
+      description: "Plataforma MEGA IPTV para dispositivos",
+      icon: "Ⓜ️",
+      variant: "success",
+      href: "https://mega-iptv.app/mylist",
     },
   ];
 
