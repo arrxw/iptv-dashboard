@@ -87,7 +87,7 @@ export default function ClientDetail() {
     alert("MAC copiada");
   }
 
-  async function copyPin(pinValue: string) {
+  async function copyPin(pinValue: string | null | undefined) {
     if (!pinValue) return;
     await navigator.clipboard.writeText(pinValue);
     alert("PIN copiado");
