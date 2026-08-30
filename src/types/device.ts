@@ -9,6 +9,9 @@ export interface Device {
 
   app_name: string | null;
 
+  // PIN for specific apps (e.g. Ibo Player)
+  pin?: string | null;
+
   start_date: string;
 
   end_date: string;

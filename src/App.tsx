@@ -10,39 +10,10 @@ import SettingsApps from "./pages/SettingsApps";
 import Subscriptions from "./pages/Subscriptions";
 import Layout from "./components/Layout";
 import { supabase } from "./services/supabase";
-import { theme } from "./theme";
 
 function App() {
   const [session, setSession] = useState<any>(null);
 
-  useEffect(() => {
-    const root = document.documentElement;
-
-    Object.entries(theme.colors).forEach(
-      ([name, value]) => {
-        root.style.setProperty(
-          `--color-${name}`,
-          value
-        );
-      }
-    );
-
-    Object.entries(theme.radius).forEach(
-      ([name, value]) => {
-        root.style.setProperty(
-          `--radius-${name}`,
-          value
-        );
-      }
-    );
-
-    Object.entries(theme.shadows).forEach(
-      ([name, value]) => {
-        const variableName = name === "shadow" ? "--shadow" : `--shadow-${name}`;
-        root.style.setProperty(variableName, value);
-      }
-    );
-  }, []);
 
   useEffect(() => {
     supabase.auth

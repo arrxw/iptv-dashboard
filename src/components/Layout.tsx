@@ -1,39 +1,6 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import {
-  Menu,
-  X,
-  LayoutDashboard,
-  Tv,
-  Settings2,
-  Link as LinkIcon,
-  ShieldCheck,
-  Moon,
-  Sun,
-} from "lucide-react";
-
-const navItems = [
-  {
-    to: "/",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    to: "/subscriptions",
-    label: "Suscripciones",
-    icon: Tv,
-  },
-  {
-    to: "/links",
-    label: "Enlaces",
-    icon: LinkIcon,
-  },
-  {
-    to: "/settings",
-    label: "Ajustes",
-    icon: Settings2,
-  },
-];
+import { Settings2 } from "lucide-react";
 
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
@@ -49,32 +16,6 @@ export default function Layout({
   children: ReactNode;
 }) {
   const location = useLocation();
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isDark, setIsDark] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem("theme") === "dark";
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    try {
-      if (isDark) {
-        document.documentElement.classList.add("dark");
-        document.documentElement.style.colorScheme = "dark";
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        document.documentElement.style.colorScheme = "light";
-        localStorage.setItem("theme", "light");
-      }
-    } catch {}
-  }, [isDark]);
 
   const currentTitle = useMemo(() => {
     if (location.pathname.startsWith("/settings/apps")) {
@@ -86,68 +27,15 @@ export default function Layout({
 
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${isSidebarOpen ? "sidebar--open" : ""}`}>
-        <div className="sidebar__brand">
-          <div className="sidebar__brand-mark">IPTV</div>
-          <div>
-            <p className="sidebar__brand-name">IPTV Manager</p>
-            <p className="sidebar__brand-subtitle">Control premium</p>
-          </div>
-        </div>
-
-        <nav className="sidebar__nav" aria-label="Navegación principal">
-          {navItems.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `sidebar__link ${isActive ? "sidebar__link--active" : ""}`
-              }
-            >
-              <span className="sidebar__link-icon">
-                <Icon size={18} />
-              </span>
-              <span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar__footer">
-          <div className="sidebar__footer-badge">
-            <ShieldCheck size={14} />
-            <span>Seguro</span>
-          </div>
-          <p className="sidebar__footer-copy">
-            Navegación rápida y confiable.
-          </p>
-        </div>
-      </aside>
-
       <div className="app-shell__workspace">
         <div className="topbar">
-          <button
-            type="button"
-            className="topbar__toggle"
-            onClick={() => setSidebarOpen((value) => !value)}
-            aria-label={isSidebarOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
           <div className="topbar__breadcrumb">
-            <span className="topbar__breadcrumb-label">
-              {currentTitle}
-            </span>
+            <span className="topbar__breadcrumb-label">{currentTitle}</span>
           </div>
           <div className="topbar__status">
-            <button
-              type="button"
-              aria-label={isDark ? "Modo claro" : "Modo oscuro"}
-              className="button button--ghost topbar__theme-toggle"
-              onClick={() => setIsDark((v) => !v)}
-            >
-              {isDark ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-            <span className="badge badge--success">Activa</span>
+            <NavLink to="/settings" aria-label="Ajustes" className="button button--ghost topbar__settings">
+              <Settings2 size={18} />
+            </NavLink>
           </div>
         </div>
 

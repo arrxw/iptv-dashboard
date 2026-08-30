@@ -29,6 +29,7 @@ export default function ClientDetail() {
   const [alias, setAlias] = useState("");
   const [mac, setMac] = useState("");
   const [app, setApp] = useState("");
+  const [pin, setPin] = useState("");
   const [startDate, setStartDate] = useState("");
   const [duration, setDuration] = useState("12");
   const [notes, setNotes] = useState("");
@@ -86,6 +87,12 @@ export default function ClientDetail() {
     alert("MAC copiada");
   }
 
+  async function copyPin(pinValue: string) {
+    if (!pinValue) return;
+    await navigator.clipboard.writeText(pinValue);
+    alert("PIN copiado");
+  }
+
   async function addDevice() {
     if (!id) return;
     if (!alias || !mac || !startDate || !duration) {
@@ -97,7 +104,7 @@ export default function ClientDetail() {
     calculatedEndDate.setMonth(calculatedEndDate.getMonth() + parseInt(duration, 10));
     const endDate = calculatedEndDate.toISOString().split("T")[0];
 
-    const { error } = await supabase.from("devices").insert({
+    const devicePayload: any = {
       client_id: id,
       alias,
       mac_address: mac,
@@ -106,7 +113,20 @@ export default function ClientDetail() {
       end_date: endDate,
       notes,
       active: true,
-    });
+    };
+
+    const appNormalized = app.trim().toLowerCase();
+    if (appNormalized === "ibo player") {
+      const pinTrim = pin.trim();
+      // Validación del PIN (4-12 caracteres alfanuméricos)
+      if (!/^[A-Za-z0-9]{4,12}$/.test(pinTrim)) {
+        alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
+        return;
+      }
+      devicePayload.pin = pinTrim;
+    }
+
+    const { error } = await supabase.from("devices").insert(devicePayload);
 
     if (error) {
       alert(error.message);
@@ -116,6 +136,7 @@ export default function ClientDetail() {
     setAlias("");
     setMac("");
     setApp("");
+    setPin("");
     setStartDate("");
     setDuration("12");
     setNotes("");
@@ -138,7 +159,7 @@ export default function ClientDetail() {
       return;
     }
 
-    const current = new Date(device.end_date);
+    const current = new Date();
     current.setMonth(current.getMonth() + months);
     const newDate = current.toISOString().split("T")[0];
 
@@ -264,56 +285,85 @@ export default function ClientDetail() {
                 <div className="device-list">
                   {devices.map((device) => (
                     <article key={device.id} className="device-card">
-                      <div className="device-card__main">
+                              <div className="device-card__main">
                         <h3>{device.alias}</h3>
                         <p className="muted-text">MAC: <span className="device-chip">{device.mac_address}</span></p>
-                      </div>
+                                {device.pin && (
+                                  <p className="muted-text">PIN: <span className="device-chip">{device.pin}</span></p>
+                                )}
+                              </div>
 
-                      <div className="device-card__meta">
-                        <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
-                          Copiar MAC
-                        </button>
-                        <button
-                          className="button button--secondary button--sm"
-                          type="button"
-                          onClick={async () => {
-                            const newAlias = prompt("Alias", device.alias || "");
-                            if (newAlias === null) return;
+                              <div className="device-card__meta">
+                                <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
+                                  Copiar MAC
+                                </button>
+                                {device.pin && (
+                                  <button className="button button--secondary button--sm" type="button" onClick={() => copyPin(device.pin)}>
+                                    Copiar PIN
+                                  </button>
+                                )}
+                                <button
+                                  className="button button--secondary button--sm"
+                                  type="button"
+                                  onClick={async () => {
+                                    const newAlias = prompt("Alias", device.alias || "");
+                                    if (newAlias === null) return;
 
-                            const newMac = prompt("MAC", device.mac_address);
-                            if (newMac === null) return;
+                                    const newMac = prompt("MAC", device.mac_address);
+                                    if (newMac === null) return;
 
-                            const newApp = prompt("App IPTV", device.app_name || "");
-                            if (newApp === null) return;
+                                    const newApp = prompt("App IPTV", device.app_name || "");
+                                    if (newApp === null) return;
 
-                            const { error } = await supabase
-                              .from("devices")
-                              .update({
-                                alias: newAlias,
-                                mac_address: newMac,
-                                app_name: newApp,
-                              })
-                              .eq("id", device.id);
+                                    let updatePayload: any = {
+                                      alias: newAlias,
+                                      mac_address: newMac,
+                                      app_name: newApp,
+                                    };
 
-                            if (error) {
-                              alert(error.message);
-                              return;
-                            }
+                                    // If the app is Ibo Player (case-insensitive), ask for PIN (allow empty to leave unchanged)
+                                    if (newApp.trim().toLowerCase() === "ibo player") {
+                                      const newPin = prompt("PIN (dejar vacío para no cambiar)", device.pin || "");
+                                      if (newPin !== null) {
+                                        const newPinTrim = newPin.trim();
+                                        if (newPinTrim !== "" && !/^[A-Za-z0-9]{4,12}$/.test(newPinTrim)) {
+                                          alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
+                                          return;
+                                        }
+                                        // If empty string, leave unchanged; otherwise set value (allow empty to clear explicitly)
+                                        if (newPinTrim !== "") {
+                                          updatePayload.pin = newPinTrim;
+                                        }
+                                      }
+                                    } else if (device.pin) {
+                                      // If switching away from Ibo Player, remove pin
+                                      updatePayload.pin = null;
+                                    }
 
-                            await loadData();
-                            alert("Dispositivo actualizado");
-                          }}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className="button button--danger button--sm"
-                          type="button"
-                          onClick={() => deleteDevice(device.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
+                                    const { error } = await supabase
+                                      .from("devices")
+                                      .update(updatePayload)
+                                      .eq("id", device.id);
+
+                                    if (error) {
+                                      alert(error.message);
+                                      return;
+                                    }
+
+                                    await loadData();
+                                    alert("Dispositivo actualizado");
+                                  }}
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  className="button button--danger button--sm"
+                                  type="button"
+                                  onClick={() => deleteDevice(device.id)}
+                                >
+                                  Eliminar
+                                </button>
+                              </div>
                     </article>
                   ))}
                 </div>
@@ -389,6 +439,14 @@ export default function ClientDetail() {
                   ))}
                 </select>
               </div>
+
+              {/* PIN sólo visible para Ibo Player (case-insensitive) */}
+              {app.trim().toLowerCase() === "ibo player" && (
+                <div className="form-field">
+                  <label className="form-field__label">PIN</label>
+                  <input className="input" placeholder="PIN para Ibo Player" value={pin} onChange={(e) => setPin(e.target.value)} />
+                </div>
+              )}
 
               <div className="form-field">
                 <label className="form-field__label">Inicio *</label>

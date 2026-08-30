@@ -6,6 +6,8 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   isLoading?: boolean;
   danger?: boolean;
+  confirmLabel?: string;
+  cancelLabel?: string;
 }
 
 export default function ConfirmDialog({
@@ -16,6 +18,8 @@ export default function ConfirmDialog({
   onCancel,
   isLoading,
   danger,
+  confirmLabel = "Confirmar",
+  cancelLabel = "Cancelar",
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -58,7 +62,7 @@ export default function ConfirmDialog({
               margin: '0 0 12px 0',
               fontSize: '18px',
               fontWeight: '600',
-              color: '#1f2937',
+              color: danger ? '#991b1b' : '#1f2937',
             }}
           >
             {title}
@@ -70,6 +74,7 @@ export default function ConfirmDialog({
               fontSize: '14px',
               color: '#6b7280',
               lineHeight: '1.5',
+              whiteSpace: 'pre-line',
             }}
           >
             {message}
@@ -106,7 +111,7 @@ export default function ConfirmDialog({
                 e.currentTarget.style.background = 'white';
               }}
             >
-              Cancelar
+              {cancelLabel}
             </button>
 
             <button
@@ -137,7 +142,7 @@ export default function ConfirmDialog({
                   : '#667eea';
               }}
             >
-              {isLoading ? 'Procesando...' : 'Confirmar'}
+              {isLoading ? 'Procesando...' : confirmLabel}
             </button>
           </div>
         </div>

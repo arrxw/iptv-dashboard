@@ -11,6 +11,7 @@ export default function NewClient({ onCreated }: Props) {
   const [alias, setAlias] = useState("");
   const [mac, setMac] = useState("");
   const [app, setApp] = useState("");
+  const [pin, setPin] = useState("");
   const [startDate, setStartDate] = useState("");
   const [duration, setDuration] = useState("12");
   const [deviceNotes, setDeviceNotes] = useState("");
@@ -33,6 +34,18 @@ export default function NewClient({ onCreated }: Props) {
       return;
     }
 
+    const appNormalized = app.trim().toLowerCase();
+
+    // Si la app es Ibo Player, validar PIN (4-12 caracteres alfanuméricos)
+    if (appNormalized === "ibo player") {
+      const pinTrim = pin.trim();
+      const pinValid = /^[A-Za-z0-9]{4,12}$/.test(pinTrim);
+      if (!pinValid) {
+        alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
+        return;
+      }
+    }
+
     setLoading(true);
 
     const { data: client, error: clientError } = await supabase
@@ -53,7 +66,7 @@ export default function NewClient({ onCreated }: Props) {
     const calculatedEndDate = new Date(startDate);
     calculatedEndDate.setMonth(calculatedEndDate.getMonth() + parseInt(duration, 10));
     const endDate = calculatedEndDate.toISOString().split("T")[0];
-    const { error: deviceError } = await supabase.from("devices").insert({
+    const devicePayload: any = {
       client_id: client.id,
       alias,
       mac_address: mac,
@@ -62,7 +75,13 @@ export default function NewClient({ onCreated }: Props) {
       end_date: endDate,
       notes: deviceNotes,
       active: true,
-    });
+    };
+
+    if (appNormalized === "ibo player") {
+      devicePayload.pin = pin.trim();
+    }
+
+    const { error: deviceError } = await supabase.from("devices").insert(devicePayload);
 
     if (deviceError) {
       alert(deviceError.message);
@@ -75,6 +94,7 @@ export default function NewClient({ onCreated }: Props) {
     setAlias("");
     setMac("");
     setApp("");
+    setPin("");
     setStartDate("");
     setDuration("12");
     setDeviceNotes("");
@@ -151,6 +171,21 @@ export default function NewClient({ onCreated }: Props) {
               ))}
             </select>
           </div>
+
+          {/* Mostrar PIN sólo si la app seleccionada es Ibo Player (case-insensitive) */}
+          {app.trim().toLowerCase() === "ibo player" && (
+            <div className="form-field">
+              <label className="form-field__label">PIN</label>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  className="input"
+                  placeholder="PIN para Ibo Player"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="form-field">
             <label className="form-field__label">Inicio *</label>

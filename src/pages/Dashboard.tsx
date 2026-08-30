@@ -7,6 +7,7 @@ import { formatDate } from "../utils/dateUtils";
 import PageHeader from "../components/PageHeader";
 import PageShell from "../components/PageShell";
 import LoadingScreen from "../components/LoadingScreen";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Dashboard() {
   const [clients, setClients] = useState<any[]>([]);
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [showNewClient, setShowNewClient] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
 
   function getMinDaysRemaining(clientId: string): number {
@@ -43,21 +45,29 @@ export default function Dashboard() {
   }
 
   async function deleteClient(clientId: string, clientName: string) {
-    const confirmDelete = window.prompt(`Escribe "${clientName}" para eliminar`);
-    if (confirmDelete !== clientName) return;
+    setClientToDelete({ id: clientId, name: clientName });
+  }
+
+  async function confirmDeleteClient() {
+    if (!clientToDelete) return;
+
+    const { id: clientId } = clientToDelete;
 
     const { error: devicesError } = await supabase.from("devices").delete().eq("client_id", clientId);
     if (devicesError) {
       alert(devicesError.message);
+      setClientToDelete(null);
       return;
     }
 
     const { error } = await supabase.from("clients").delete().eq("id", clientId);
     if (error) {
       alert(error.message);
+      setClientToDelete(null);
       return;
     }
 
+    setClientToDelete(null);
     await loadClients();
     alert("Cliente eliminado");
   }
@@ -176,6 +186,17 @@ export default function Dashboard() {
         </section>
 
         {showNewClient && <NewClient onCreated={loadClients} />}
+
+        <ConfirmDialog
+          isOpen={!!clientToDelete}
+          title="⚠️ Eliminar cliente"
+          message={"¿Estás seguro de que quieres eliminar este cliente?\n\nEsta acción eliminará el cliente y sus dispositivos asociados."}
+          onConfirm={confirmDeleteClient}
+          onCancel={() => setClientToDelete(null)}
+          danger
+          confirmLabel="Eliminar definitivamente"
+          cancelLabel="Cancelar"
+        />
 
         {showExpired && expiredDevices.length > 0 && (
           <div className="alert-panel alert-panel--critical">
