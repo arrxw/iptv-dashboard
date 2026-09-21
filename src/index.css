@@ -881,6 +881,48 @@ p {
   justify-content: flex-end;
 }
 
+.renewal-history {
+  display: grid;
+  gap: 12px;
+}
+
+.renewal-history__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-muted);
+}
+
+.renewal-history__amounts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.renewal-history__amounts strong,
+.renewal-profit-preview {
+  color: var(--color-accent-strong);
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .renewal-history__item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .renewal-history__amounts {
+    justify-content: flex-start;
+  }
+}
+
 .section-title {
   display: flex;
   align-items: center;

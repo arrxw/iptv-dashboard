@@ -12,6 +12,16 @@ import PageShell from "../components/PageShell";
 import PageHeader from "../components/PageHeader";
 import LoadingScreen from "../components/LoadingScreen";
 
+interface RenewalRecord {
+  id: string;
+  device_id: string;
+  months: number;
+  cost_amount: number;
+  sale_amount: number;
+  profit_amount: number;
+  renewed_at: string;
+}
+
 export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -25,6 +35,11 @@ export default function ClientDetail() {
     months: number;
     step: "first" | "second";
   } | null>(null);
+  const [renewalDraft, setRenewalDraft] = useState<{ device: Device; months: number } | null>(null);
+  const [renewalCost, setRenewalCost] = useState("");
+  const [renewalSale, setRenewalSale] = useState("");
+  const [renewalHistory, setRenewalHistory] = useState<RenewalRecord[]>([]);
+  const [showRenewalHistory, setShowRenewalHistory] = useState(false);
 
   const [alias, setAlias] = useState("");
   const [mac, setMac] = useState("");
@@ -62,6 +77,19 @@ export default function ClientDetail() {
     if (devicesError) {
       console.error(devicesError);
       return;
+    }
+
+    const { data: renewalData, error: renewalError } = await supabase
+      .from("device_renewals")
+      .select("id, device_id, months, cost_amount, sale_amount, profit_amount, renewed_at")
+      .eq("client_id", id)
+      .order("renewed_at", { ascending: false });
+
+    if (renewalError) {
+      console.error(renewalError);
+      setRenewalHistory([]);
+    } else {
+      setRenewalHistory(renewalData || []);
     }
 
     setClient(clientData);
@@ -147,7 +175,24 @@ export default function ClientDetail() {
   }
 
   async function renewDevice(device: Device, months: number) {
-    setRenewalConfirm({ device, months, step: "first" });
+    setRenewalCost("");
+    setRenewalSale("");
+    setRenewalDraft({ device, months });
+  }
+
+  function submitRenewalDetails(event: React.FormEvent) {
+    event.preventDefault();
+    if (!renewalDraft) return;
+
+    const cost = Number(renewalCost);
+    const sale = Number(renewalSale);
+    if (!Number.isFinite(cost) || !Number.isFinite(sale) || cost < 0 || sale < 0) {
+      alert("Introduce importes válidos.");
+      return;
+    }
+
+    setRenewalDraft(null);
+    setRenewalConfirm({ ...renewalDraft, step: "first" });
   }
 
   async function confirmRenewal() {
@@ -159,6 +204,9 @@ export default function ClientDetail() {
       return;
     }
 
+    const cost = Number(renewalCost);
+    const sale = Number(renewalSale);
+    const profit = sale - cost;
     const current = new Date();
     current.setMonth(current.getMonth() + months);
     const newDate = current.toISOString().split("T")[0];
@@ -171,6 +219,22 @@ export default function ClientDetail() {
     if (error) {
       alert(error.message);
       setRenewalConfirm(null);
+      return;
+    }
+
+    const { error: renewalError } = await supabase.from("device_renewals").insert({
+      client_id: id,
+      device_id: device.id,
+      months,
+      cost_amount: cost,
+      sale_amount: sale,
+      profit_amount: profit,
+    });
+
+    if (renewalError) {
+      alert(`Dispositivo renovado, pero no se pudo guardar el histórico: ${renewalError.message}`);
+      setRenewalConfirm(null);
+      await loadData();
       return;
     }
 
@@ -382,6 +446,13 @@ export default function ClientDetail() {
           <section className="card">
             <div className="card__header">
               <h2>Renovaciones</h2>
+              <button
+                className="button button--secondary button--sm"
+                type="button"
+                onClick={() => setShowRenewalHistory((value) => !value)}
+              >
+                {showRenewalHistory ? "Ocultar histórico" : "Ver histórico"}
+              </button>
             </div>
             <div className="card__body">
               <div className="card-grid card-grid--columns-2">
@@ -412,6 +483,62 @@ export default function ClientDetail() {
             </div>
           </section>
         )}
+
+        {showRenewalHistory && (
+          <section className="card">
+            <div className="card__header">
+              <h2>Histórico de renovaciones</h2>
+            </div>
+            <div className="card__body">
+              {renewalHistory.length === 0 ? (
+                <p className="muted-text">Todavía no hay renovaciones registradas.</p>
+              ) : (
+                <div className="renewal-history">
+                  {renewalHistory.map((renewal) => {
+                    const device = devices.find((item) => item.id === renewal.device_id);
+                    return (
+                      <article className="renewal-history__item" key={renewal.id}>
+                        <div>
+                          <strong>{device?.alias || "Dispositivo"}</strong>
+                          <p className="muted-text">
+                            {renewal.months} mes{renewal.months !== 1 ? "es" : ""} ·{" "}
+                            {formatDate(renewal.renewed_at)}
+                          </p>
+                        </div>
+                        <div className="renewal-history__amounts">
+                          <span>Coste: {Number(renewal.cost_amount).toFixed(2)} €</span>
+                          <span>Cobrado: {Number(renewal.sale_amount).toFixed(2)} €</span>
+                          <strong>Beneficio: {Number(renewal.profit_amount).toFixed(2)} €</strong>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        <Modal
+          isOpen={renewalDraft !== null}
+          onClose={() => setRenewalDraft(null)}
+          title={`Datos de renovación (${renewalDraft?.months || 0} meses)`}
+        >
+          <form className="modal-form" onSubmit={submitRenewalDetails}>
+            <div className="form-field">
+              <label className="form-field__label">Lo que te cuesta (€) *</label>
+              <input className="input" type="number" min="0" step="0.01" value={renewalCost} onChange={(event) => setRenewalCost(event.target.value)} required />
+            </div>
+            <div className="form-field">
+              <label className="form-field__label">Lo que cobras al cliente (€) *</label>
+              <input className="input" type="number" min="0" step="0.01" value={renewalSale} onChange={(event) => setRenewalSale(event.target.value)} required />
+            </div>
+            <p className="renewal-profit-preview">
+              Beneficio: {(Number(renewalSale || 0) - Number(renewalCost || 0)).toFixed(2)} €
+            </p>
+            <button className="button button--primary button--lg" type="submit">Continuar</button>
+          </form>
+        </Modal>
 
         <Modal isOpen={showAddDevice} onClose={() => setShowAddDevice(false)} title="Añadir nuevo dispositivo">
           <form

@@ -15,6 +15,8 @@ export default function NewClient({ onCreated }: Props) {
   const [startDate, setStartDate] = useState("");
   const [duration, setDuration] = useState("12");
   const [deviceNotes, setDeviceNotes] = useState("");
+  const [costAmount, setCostAmount] = useState("");
+  const [saleAmount, setSaleAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [appsList, setAppsList] = useState<{ id: string; name: string }[]>([]);
 
@@ -31,6 +33,13 @@ export default function NewClient({ onCreated }: Props) {
 
     if (!name || !alias || !mac || !startDate) {
       alert("Completa todos los campos obligatorios");
+      return;
+    }
+
+    const cost = Number(costAmount);
+    const sale = Number(saleAmount);
+    if (!Number.isFinite(cost) || !Number.isFinite(sale) || cost < 0 || sale < 0) {
+      alert("Introduce un coste y un precio de venta válidos.");
       return;
     }
 
@@ -81,10 +90,30 @@ export default function NewClient({ onCreated }: Props) {
       devicePayload.pin = pin.trim();
     }
 
-    const { error: deviceError } = await supabase.from("devices").insert(devicePayload);
+    const { data: createdDevice, error: deviceError } = await supabase
+      .from("devices")
+      .insert(devicePayload)
+      .select("id")
+      .single();
 
     if (deviceError) {
       alert(deviceError.message);
+      setLoading(false);
+      return;
+    }
+
+    const { error: renewalError } = await supabase.from("device_renewals").insert({
+      client_id: client.id,
+      device_id: createdDevice.id,
+      months: Number(duration),
+      cost_amount: cost,
+      sale_amount: sale,
+      profit_amount: sale - cost,
+      renewed_at: `${startDate}T00:00:00`,
+    });
+
+    if (renewalError) {
+      alert(`Cliente creado, pero no se pudo guardar el histórico económico: ${renewalError.message}`);
       setLoading(false);
       return;
     }
@@ -98,6 +127,8 @@ export default function NewClient({ onCreated }: Props) {
     setStartDate("");
     setDuration("12");
     setDeviceNotes("");
+    setCostAmount("");
+    setSaleAmount("");
 
     onCreated();
 
@@ -134,6 +165,39 @@ export default function NewClient({ onCreated }: Props) {
               value={clientNotes}
               onChange={(e) => setClientNotes(e.target.value)}
             />
+          </div>
+        </div>
+
+        <div className="form-grid">
+          <div className="form-field">
+            <label className="form-field__label">Coste para ti (€) *</label>
+            <input
+              className="input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={costAmount}
+              onChange={(e) => setCostAmount(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-field">
+            <label className="form-field__label">Precio al cliente (€) *</label>
+            <input
+              className="input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={saleAmount}
+              onChange={(e) => setSaleAmount(e.target.value)}
+              required
+            />
+            <p className="muted-text">
+              Beneficio: {(Number(saleAmount || 0) - Number(costAmount || 0)).toFixed(2)} €
+            </p>
           </div>
         </div>
 
