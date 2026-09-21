@@ -273,6 +273,9 @@ export default function Dashboard() {
             {filteredClients.map((client) => {
               const minDays = getMinDaysRemaining(client.id);
               const status = getAlertStatus(minDays);
+              const clientApps = devices
+                .filter((device) => device.client_id === client.id && device.app_name)
+                .map((device) => device.app_name);
               return (
                 <button
                   key={client.id}
@@ -294,6 +297,15 @@ export default function Dashboard() {
                     <div className="client-card__row">
                       <span className="card-pill">{client.devicesCount} dispositivo{client.devicesCount !== 1 ? "s" : ""}</span>
                     </div>
+                    {clientApps.length > 0 && (
+                      <div className="client-card__row">
+                        {clientApps.map((appName, index) => (
+                          <span className="badge badge--info" key={`${appName}-${index}`}>
+                            {appName}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {minDays < 30 && (
                       <p className="client-card__status">
                         ⏰ Caduca en {minDays === 1 ? "1 día" : `${minDays} días`}

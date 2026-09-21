@@ -260,7 +260,7 @@ p {
 }
 
 .page-header--success {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.96), rgba(34, 197, 94, 0.96));
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-strong));
   color: white;
   border-color: transparent;
 }
@@ -287,13 +287,24 @@ p {
 
 .page-header__title {
   font-size: clamp(2rem, 3vw, 2.8rem);
-  color: var(--page-header-hero-text);
+  color: var(--color-heading);
 }
 
 .page-header__subtitle {
-  color: inherit;
+  color: var(--color-muted);
   opacity: 0.88;
   max-width: 68ch;
+}
+
+.page-header--hero .page-header__title,
+.page-header--success .page-header__title,
+.page-header--purple .page-header__title {
+  color: var(--page-header-hero-text);
+}
+
+.page-header--hero .page-header__subtitle,
+.page-header--success .page-header__subtitle,
+.page-header--purple .page-header__subtitle {
   color: var(--page-header-hero-text);
 }
 
@@ -754,6 +765,14 @@ p {
   padding: 22px;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
   text-align: left;
+}
+
+.client-card {
+  color: var(--color-text);
+}
+
+.client-card h3 {
+  color: var(--color-heading);
 }
 
 .client-card:hover,
@@ -1329,7 +1348,7 @@ p {
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 16px;
-  color: #22BF90;
+  color: var(--color-accent);
 }
 
 .card-pill {
@@ -1341,7 +1360,7 @@ p {
   border: 1px solid var(--color-border);
   background: var(--color-surface-soft);
   font-size: 13px;
-  color:white
+  color: var(--color-heading);
 }
 
 @media (max-width: 980px) {

@@ -288,10 +288,16 @@ export default function ClientDetail() {
                               <div className="device-card__main">
                         <h3>{device.alias}</h3>
                         <p className="muted-text">MAC: <span className="device-chip">{device.mac_address}</span></p>
-                                {device.pin && (
-                                  <p className="muted-text">PIN: <span className="device-chip">{device.pin}</span></p>
-                                )}
-                              </div>
+                        <p className="muted-text">
+                          App:{" "}
+                          <span className="badge badge--info">
+                            {device.app_name || "Sin aplicación asignada"}
+                          </span>
+                        </p>
+                        {device.pin && (
+                          <p className="muted-text">PIN: <span className="device-chip">{device.pin}</span></p>
+                        )}
+                      </div>
 
                               <div className="device-card__meta">
                                 <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>

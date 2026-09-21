@@ -11,10 +11,10 @@
     1) Base layout / background colors
     Used by app shell, cards, surfaces and page backgrounds.
     ----------------------------------------------------- */
- --color-background: rgb(26, 147, 111);
- --color-surface: #bac8b1;
- --color-surface-soft: #22bf90;
- --color-surface-muted: #a8f0da;
+ --color-background: #eef3f5;
+ --color-surface: #ffffff;
+ --color-surface-soft: #dce9ed;
+ --color-surface-muted: #e8f0f2;
 
  /* -----------------------------------------------------
     2) Typography / borders
@@ -23,43 +23,43 @@
  --color-text: #111827;
  --color-heading: #0f172a;
  --color-muted: #64748b;
- --color-border: #7b9669;
+ --color-border: #c5d5da;
 
  /* -----------------------------------------------------
     3) Brand / interactive accents
     Main action colors for buttons, links and selected states.
     ----------------------------------------------------- */
- --color-accent: #404e3b;
- --color-accent-strong: #4338ca;
- --color-accent-soft: rgba(91, 75, 255, 0.14);
+ --color-accent: #176b78;
+ --color-accent-strong: #0f4f5b;
+ --color-accent-soft: rgba(23, 107, 120, 0.14);
  --color-logout: #f43f5e;
 
  /* -----------------------------------------------------
     4) Status / semantic colors
     Used in badges, alerts, success warning and info states.
     ----------------------------------------------------- */
- --color-success: #10b981;
- --color-success-soft: rgba(16, 185, 129, 0.12);
+ --color-success: #167c78;
+ --color-success-soft: rgba(22, 124, 120, 0.12);
  --color-warning: #925d00;
  --color-warning-soft: rgba(245, 158, 11, 0.14);
  --color-danger: #ef4444;
  --color-danger-soft: rgba(239, 68, 68, 0.12);
- --color-info: #0ea5e9;
- --color-info-soft: rgba(14, 165, 233, 0.12);
+ --color-info: #176b78;
+ --color-info-soft: rgba(23, 107, 120, 0.12);
 
  /* -----------------------------------------------------
     5) Hero / banner colors
     Page headers and banners that need a stronger visual accent.
     ----------------------------------------------------- */
- --color-bannertitulo: rgb(18, 104, 78);
- --page-header-hero-text: #ebebeb;
+ --color-bannertitulo: #176b78;
+ --page-header-hero-text: #ffffff;
 
  /* -----------------------------------------------------
     6) Subpages / module themes
     Colors specific to auth, dashboards and quick-links screens.
     ----------------------------------------------------- */
- --page-login-start: #eef4ff;
- --page-login-end: #f7f9ff;
+ --page-login-start: #e8f0f2;
+ --page-login-end: #f7fafb;
 
  /* Links page */
  --page-links-card-hover-border: rgba(91, 75, 255, 0.2);
@@ -122,4 +122,3 @@
  --transition-fast: 0.18s ease;
  --transition-base: 0.26s ease;
 }
-
