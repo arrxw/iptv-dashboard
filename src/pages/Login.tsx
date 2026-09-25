@@ -42,7 +42,7 @@ export default function Login() {
           <div>
             <h1>Gestor de clientes</h1>
             <p className="muted-text">
-              Gestión moderna de clientes y dispositivos.
+              Gestión de clientes y dispositivos.
             </p>
           </div>
         </div>
