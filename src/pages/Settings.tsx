@@ -4,9 +4,9 @@ import PageShell from "../components/PageShell";
 import PageHeader from "../components/PageHeader";
 
 const ANNOUNCEMENT_STORAGE_KEYS = {
-  enabled: "iptv-dashboard-announcement-enabled",
-  message: "iptv-dashboard-announcement-message",
-  dismissed: "iptv-dashboard-announcement-dismissed",
+  enabled: "client-dashboard-announcement-enabled",
+  message: "client-dashboard-announcement-message",
+  dismissed: "client-dashboard-announcement-dismissed",
 };
 
 const DEFAULT_ANNOUNCEMENT_MESSAGE =
@@ -61,13 +61,13 @@ export default function Settings() {
       <div className="settings-page">
         <PageHeader
           title="Configuración"
-          subtitle="Ajusta los elementos centrales de la plataforma IPTV desde un panel ordenado."
+          subtitle="Ajusta los elementos centrales de la plataforma desde un panel ordenado."
         />
 
         <div className="card-grid card-grid--columns-2">
           <button className="card card--clickable" type="button" onClick={() => navigate("/settings/apps")}>
             <div className="card__header">
-              <h3>Aplicaciones IPTV</h3>
+              <h3>Aplicaciones</h3>
             </div>
             <div className="card__body">
               <p className="muted-text">Gestionar aplicaciones que pueden asignarse al crear dispositivos.</p>

@@ -161,7 +161,7 @@ export default function NewClient({ onCreated }: Props) {
 
         <div className="form-grid">
           <div className="form-field">
-            <label className="form-field__label">App IPTV</label>
+            <label className="form-field__label">Aplicación</label>
             <select className="select" value={app} onChange={(e) => setApp(e.target.value)}>
               <option value="">Seleccionar aplicación</option>
               {appsList.map((appItem) => (

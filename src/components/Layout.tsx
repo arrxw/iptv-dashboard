@@ -7,13 +7,13 @@ const routeTitles: Record<string, string> = {
   "/subscriptions": "Suscripciones",
   "/links": "Enlaces",
   "/settings": "Configuración",
-  "/settings/apps": "Aplicaciones IPTV",
+  "/settings/apps": "Aplicaciones",
 };
 
 const ANNOUNCEMENT_STORAGE_KEYS = {
-  enabled: "iptv-dashboard-announcement-enabled",
-  message: "iptv-dashboard-announcement-message",
-  dismissed: "iptv-dashboard-announcement-dismissed",
+  enabled: "client-dashboard-announcement-enabled",
+  message: "client-dashboard-announcement-message",
+  dismissed: "client-dashboard-announcement-dismissed",
 };
 
 const DEFAULT_ANNOUNCEMENT_MESSAGE =
@@ -96,10 +96,10 @@ export default function Layout({
 
   const currentTitle = useMemo(() => {
     if (location.pathname.startsWith("/settings/apps")) {
-      return "Aplicaciones IPTV";
+      return "Aplicaciones";
     }
 
-    return routeTitles[location.pathname] || "IPTV SaaS";
+    return routeTitles[location.pathname] || "Gestor de clientes";
   }, [location.pathname]);
 
   return (
@@ -122,4 +122,3 @@ export default function Layout({
     </div>
   );
 }
-

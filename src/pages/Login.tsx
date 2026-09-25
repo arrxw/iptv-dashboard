@@ -38,9 +38,9 @@ export default function Login() {
     <div className="login-page">
       <div className="login-panel card">
         <div className="login-brand">
-          <div className="login-brand-mark">IPTV</div>
+          <div className="login-brand-mark">GC</div>
           <div>
-            <h1>IPTV Dashboard</h1>
+            <h1>Gestor de clientes</h1>
             <p className="muted-text">
               Gestión moderna de clientes y dispositivos.
             </p>

@@ -8,12 +8,20 @@ import PageHeader from "../components/PageHeader";
 import PageShell from "../components/PageShell";
 import LoadingScreen from "../components/LoadingScreen";
 import ConfirmDialog from "../components/ConfirmDialog";
+import type { Client } from "../types/client";
+import type { Device } from "../types/device";
 
 export default function Dashboard() {
-  const [clients, setClients] = useState<any[]>([]);
-  const [devices, setDevices] = useState<any[]>([]);
+  const [clients, setClients] = useState<(Client & { devicesCount: number })[]>([]);
+  const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [appFilter, setAppFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [expirationFrom, setExpirationFrom] = useState("");
+  const [expirationTo, setExpirationTo] = useState("");
+  const [sortOrder, setSortOrder] = useState("name-asc");
+  const [currentPage, setCurrentPage] = useState(1);
   const [showNewClient, setShowNewClient] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
@@ -27,10 +35,11 @@ export default function Dashboard() {
   }
 
   function daysRemaining(endDate: string): number {
-    const today = new Date().getTime();
-    const end = new Date(endDate).getTime();
-    const diff = end - today;
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const [year, month, day] = endDate.split("-").map(Number);
+    const end = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   }
 
   function getAlertStatus(minDays: number): "normal" | "warning" | "danger" | "critical" {
@@ -88,7 +97,7 @@ export default function Dashboard() {
     setDevices(devicesData || []);
 
     const clientsWithCount = await Promise.all(
-      (data || []).map(async (client) => {
+      (data || []).map(async (client: Client) => {
         const { count } = await supabase
           .from("devices")
           .select("*", {
@@ -112,11 +121,74 @@ export default function Dashboard() {
     loadClients();
   }, []);
 
-  const filteredClients = clients.filter(
-    (client) =>
-      client.name.toLowerCase().includes(search.toLowerCase()) ||
-      (client.notes || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const availableApps = [...new Set(
+    devices.map((device) => device.app_name?.trim()).filter((app): app is string => Boolean(app))
+  )].sort((a, b) => a.localeCompare(b, "es"));
+
+  const filteredClients = clients
+    .map((client) => {
+      const clientDevices = devices.filter((device) => device.client_id === client.id);
+      const matchingDevices = clientDevices.filter((device) => {
+        if (appFilter && device.app_name !== appFilter) return false;
+        if (expirationFrom && device.end_date < expirationFrom) return false;
+        if (expirationTo && device.end_date > expirationTo) return false;
+
+        const remaining = daysRemaining(device.end_date);
+        if (statusFilter === "active" && (!device.active || remaining <= 0)) return false;
+        if (statusFilter === "upcoming" && (remaining <= 0 || remaining > 30)) return false;
+        if (statusFilter === "expired" && remaining > 0) return false;
+        if (statusFilter === "inactive" && device.active) return false;
+
+        return true;
+      });
+
+      const clientMatchesSearch =
+        client.name.toLocaleLowerCase().includes(normalizedSearch) ||
+        (client.notes || "").toLocaleLowerCase().includes(normalizedSearch) ||
+        (client.whatsapp || "").toLocaleLowerCase().includes(normalizedSearch);
+      const deviceMatchesSearch = matchingDevices.some((device) =>
+        [device.alias, device.mac_address, device.app_name, device.notes]
+          .some((value) => (value || "").toLocaleLowerCase().includes(normalizedSearch))
+      );
+      const hasDeviceFilters = Boolean(appFilter || statusFilter !== "all" || expirationFrom || expirationTo);
+      const searchMatches = !normalizedSearch || clientMatchesSearch || deviceMatchesSearch;
+      const deviceFiltersMatch = matchingDevices.length > 0 || (!hasDeviceFilters && clientDevices.length === 0);
+
+      return { client, matchingDevices, searchMatches, deviceFiltersMatch };
+    })
+    .filter(({ searchMatches, deviceFiltersMatch }) => searchMatches && deviceFiltersMatch)
+    .sort((a, b) => {
+      if (sortOrder === "name-desc") return b.client.name.localeCompare(a.client.name, "es");
+      if (sortOrder === "created-desc") {
+        return new Date(b.client.created_at).getTime() - new Date(a.client.created_at).getTime();
+      }
+      if (sortOrder === "expiration-asc" || sortOrder === "expiration-desc") {
+        const getNearestExpiration = (matchingDevices: typeof devices) =>
+          matchingDevices.length
+            ? Math.min(...matchingDevices.map((device) => daysRemaining(device.end_date)))
+            : Number.POSITIVE_INFINITY;
+        const expirationA = getNearestExpiration(a.matchingDevices);
+        const expirationB = getNearestExpiration(b.matchingDevices);
+        if (!Number.isFinite(expirationA) || !Number.isFinite(expirationB)) {
+          if (expirationA === expirationB) return a.client.name.localeCompare(b.client.name, "es");
+          return Number.isFinite(expirationA) ? -1 : 1;
+        }
+        const difference = expirationA - expirationB;
+        return sortOrder === "expiration-asc" ? difference : -difference;
+      }
+      return a.client.name.localeCompare(b.client.name, "es");
+    });
+
+  const pageSize = 12;
+  const totalPages = Math.max(1, Math.ceil(filteredClients.length / pageSize));
+  const page = Math.min(currentPage, totalPages);
+  const visibleClients = filteredClients.slice((page - 1) * pageSize, page * pageSize);
+
+  function resetPage<T>(setter: (value: T) => void, value: T) {
+    setter(value);
+    setCurrentPage(1);
+  }
 
   if (loading) {
     return <LoadingScreen message="Cargando clientes..." />;
@@ -132,7 +204,7 @@ export default function Dashboard() {
     <PageShell>
       <div className="dashboard-page">
         <PageHeader
-          title="IPTV Manager"
+          title="Gestor de clientes"
           subtitle="Visión completa de clientes, dispositivos y fechas de caducidad."
           variant="hero"
           actions={
@@ -147,9 +219,10 @@ export default function Dashboard() {
           <div className="dashboard-search">
             <input
               className="input"
-              placeholder="Buscar cliente..."
+              placeholder="Buscar cliente, alias, MAC o aplicación..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => resetPage(setSearch, e.target.value)}
+              aria-label="Buscar clientes y dispositivos"
             />
           </div>
 
@@ -183,6 +256,65 @@ export default function Dashboard() {
               Enlaces
             </button>
           </div>
+        </section>
+
+        <section className="dashboard-filters card" aria-label="Filtros de clientes">
+          <div className="dashboard-filters__grid">
+            <label className="form-field">
+              <span className="form-field__label">Aplicación</span>
+              <select className="select" value={appFilter} onChange={(event) => resetPage(setAppFilter, event.target.value)}>
+                <option value="">Todas las aplicaciones</option>
+                {availableApps.map((appName) => <option key={appName} value={appName}>{appName}</option>)}
+              </select>
+            </label>
+
+            <label className="form-field">
+              <span className="form-field__label">Estado</span>
+              <select className="select" value={statusFilter} onChange={(event) => resetPage(setStatusFilter, event.target.value)}>
+                <option value="all">Todos los estados</option>
+                <option value="active">Activos</option>
+                <option value="upcoming">Por vencer (30 días)</option>
+                <option value="expired">Caducados</option>
+                <option value="inactive">Desactivados</option>
+              </select>
+            </label>
+
+            <label className="form-field">
+              <span className="form-field__label">Vence desde</span>
+              <input className="input" type="date" value={expirationFrom} max={expirationTo || undefined} onChange={(event) => resetPage(setExpirationFrom, event.target.value)} />
+            </label>
+
+            <label className="form-field">
+              <span className="form-field__label">Vence hasta</span>
+              <input className="input" type="date" value={expirationTo} min={expirationFrom || undefined} onChange={(event) => resetPage(setExpirationTo, event.target.value)} />
+            </label>
+
+            <label className="form-field">
+              <span className="form-field__label">Ordenar por</span>
+              <select className="select" value={sortOrder} onChange={(event) => resetPage(setSortOrder, event.target.value)}>
+                <option value="name-asc">Nombre (A–Z)</option>
+                <option value="name-desc">Nombre (Z–A)</option>
+                <option value="expiration-asc">Vencimiento más próximo</option>
+                <option value="expiration-desc">Vencimiento más lejano</option>
+                <option value="created-desc">Añadidos recientemente</option>
+              </select>
+            </label>
+          </div>
+          <button
+            type="button"
+            className="button button--secondary button--sm"
+            onClick={() => {
+              setAppFilter("");
+              setStatusFilter("all");
+              setExpirationFrom("");
+              setExpirationTo("");
+              setSortOrder("name-asc");
+              setSearch("");
+              setCurrentPage(1);
+            }}
+          >
+            Limpiar filtros
+          </button>
         </section>
 
         {showNewClient && <NewClient onCreated={loadClients} />}
@@ -266,11 +398,11 @@ export default function Dashboard() {
 
         {filteredClients.length === 0 ? (
           <div className="empty-state card">
-            <p>{search ? "No se encontraron clientes." : "No hay clientes aún."}</p>
+            <p>{clients.length === 0 ? "No hay clientes aún." : "No hay clientes que coincidan con la búsqueda y los filtros."}</p>
           </div>
         ) : (
           <div className="card-grid card-grid--columns-3">
-            {filteredClients.map((client) => {
+            {visibleClients.map(({ client }) => {
               const minDays = getMinDaysRemaining(client.id);
               const status = getAlertStatus(minDays);
               return (
@@ -317,6 +449,33 @@ export default function Dashboard() {
               );
             })}
           </div>
+        )}
+
+        {filteredClients.length > 0 && (
+          <nav className="dashboard-pagination" aria-label="Paginación de clientes">
+            <span className="muted-text">
+              Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredClients.length)} de {filteredClients.length}
+            </span>
+            <div className="dashboard-pagination__actions">
+              <button
+                type="button"
+                className="button button--secondary button--sm"
+                disabled={page <= 1}
+                onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
+              >
+                Anterior
+              </button>
+              <span className="dashboard-pagination__page">Página {page} de {totalPages}</span>
+              <button
+                type="button"
+                className="button button--secondary button--sm"
+                disabled={page >= totalPages}
+                onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
+              >
+                Siguiente
+              </button>
+            </div>
+          </nav>
         )}
       </div>
     </PageShell>

@@ -1,6 +1,6 @@
-export const IPTV_APPS = [
+export const AVAILABLE_APPS = [
   "Elk Player",
-  "Hot IPTV",
+  "Hot Player",
   "Smarters",
   "MEGA",
   "Otro (Formuler...)",

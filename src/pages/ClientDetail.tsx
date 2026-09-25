@@ -20,6 +20,12 @@ export default function ClientDetail() {
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDevice, setShowAddDevice] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
+  const [editAlias, setEditAlias] = useState("");
+  const [editMac, setEditMac] = useState("");
+  const [editApp, setEditApp] = useState("");
+  const [editPin, setEditPin] = useState("");
+  const [savingDevice, setSavingDevice] = useState(false);
   const [renewalConfirm, setRenewalConfirm] = useState<{
     device: Device;
     months: number;
@@ -91,6 +97,63 @@ export default function ClientDetail() {
     if (!pinValue) return;
     await navigator.clipboard.writeText(pinValue);
     alert("PIN copiado");
+  }
+
+  function openDeviceEditor(device: Device) {
+    setEditingDevice(device);
+    setEditAlias(device.alias || "");
+    setEditMac(device.mac_address);
+    setEditApp(device.app_name || "");
+    setEditPin(device.pin || "");
+  }
+
+  async function saveDevice(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editingDevice) return;
+
+    const normalizedAlias = editAlias.trim();
+    const normalizedMac = editMac.trim();
+    const normalizedApp = editApp.trim();
+    const normalizedPin = editPin.trim();
+
+    if (!normalizedAlias || !normalizedMac) {
+      alert("El alias y la MAC son obligatorios.");
+      return;
+    }
+
+    if (normalizedApp.toLowerCase() === "ibo player" && normalizedPin &&
+      !/^[A-Za-z0-9]{4,12}$/.test(normalizedPin)) {
+      alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
+      return;
+    }
+
+    const updatePayload: Partial<Pick<Device, "alias" | "mac_address" | "app_name" | "pin">> = {
+      alias: normalizedAlias,
+      mac_address: normalizedMac,
+      app_name: normalizedApp || null,
+    };
+
+    if (normalizedApp.toLowerCase() === "ibo player") {
+      if (normalizedPin) updatePayload.pin = normalizedPin;
+    } else if (editingDevice.pin) {
+      updatePayload.pin = null;
+    }
+
+    setSavingDevice(true);
+    const { error } = await supabase
+      .from("devices")
+      .update(updatePayload)
+      .eq("id", editingDevice.id);
+    setSavingDevice(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setEditingDevice(null);
+    await loadData();
+    alert("Dispositivo actualizado");
   }
 
   async function addDevice() {
@@ -285,85 +348,48 @@ export default function ClientDetail() {
                 <div className="device-list">
                   {devices.map((device) => (
                     <article key={device.id} className="device-card">
-                              <div className="device-card__main">
+                      <div className="device-card__main">
                         <h3>{device.alias}</h3>
-                        <p className="muted-text">MAC: <span className="device-chip">{device.mac_address}</span></p>
-                                {device.pin && (
-                                  <p className="muted-text">PIN: <span className="device-chip">{device.pin}</span></p>
-                                )}
-                              </div>
+                        <p className="device-card__detail">
+                          <span className="device-card__label">MAC</span>
+                          <span className="device-chip">{device.mac_address}</span>
+                        </p>
+                        <p className="device-card__detail">
+                          <span className="device-card__label">Aplicación</span>
+                          <span className="device-card__app">{device.app_name || "Sin aplicación asignada"}</span>
+                        </p>
+                        {device.pin && (
+                          <p className="device-card__detail">
+                            <span className="device-card__label">PIN</span>
+                            <span className="device-chip">{device.pin}</span>
+                          </p>
+                        )}
+                      </div>
 
-                              <div className="device-card__meta">
-                                <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
-                                  Copiar MAC
-                                </button>
-                                {device.pin && (
-                                  <button className="button button--secondary button--sm" type="button" onClick={() => copyPin(device.pin)}>
-                                    Copiar PIN
-                                  </button>
-                                )}
-                                <button
-                                  className="button button--secondary button--sm"
-                                  type="button"
-                                  onClick={async () => {
-                                    const newAlias = prompt("Alias", device.alias || "");
-                                    if (newAlias === null) return;
-
-                                    const newMac = prompt("MAC", device.mac_address);
-                                    if (newMac === null) return;
-
-                                    const newApp = prompt("App IPTV", device.app_name || "");
-                                    if (newApp === null) return;
-
-                                    let updatePayload: any = {
-                                      alias: newAlias,
-                                      mac_address: newMac,
-                                      app_name: newApp,
-                                    };
-
-                                    // If the app is Ibo Player (case-insensitive), ask for PIN (allow empty to leave unchanged)
-                                    if (newApp.trim().toLowerCase() === "ibo player") {
-                                      const newPin = prompt("PIN (dejar vacío para no cambiar)", device.pin || "");
-                                      if (newPin !== null) {
-                                        const newPinTrim = newPin.trim();
-                                        if (newPinTrim !== "" && !/^[A-Za-z0-9]{4,12}$/.test(newPinTrim)) {
-                                          alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
-                                          return;
-                                        }
-                                        // If empty string, leave unchanged; otherwise set value (allow empty to clear explicitly)
-                                        if (newPinTrim !== "") {
-                                          updatePayload.pin = newPinTrim;
-                                        }
-                                      }
-                                    } else if (device.pin) {
-                                      // If switching away from Ibo Player, remove pin
-                                      updatePayload.pin = null;
-                                    }
-
-                                    const { error } = await supabase
-                                      .from("devices")
-                                      .update(updatePayload)
-                                      .eq("id", device.id);
-
-                                    if (error) {
-                                      alert(error.message);
-                                      return;
-                                    }
-
-                                    await loadData();
-                                    alert("Dispositivo actualizado");
-                                  }}
-                                >
-                                  Editar
-                                </button>
-                                <button
-                                  className="button button--danger button--sm"
-                                  type="button"
-                                  onClick={() => deleteDevice(device.id)}
-                                >
-                                  Eliminar
-                                </button>
-                              </div>
+                      <div className="device-card__meta">
+                        <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
+                          Copiar MAC
+                        </button>
+                        {device.pin && (
+                          <button className="button button--secondary button--sm" type="button" onClick={() => copyPin(device.pin)}>
+                            Copiar PIN
+                          </button>
+                        )}
+                        <button
+                          className="button button--secondary button--sm"
+                          type="button"
+                          onClick={() => openDeviceEditor(device)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="button button--danger button--sm"
+                          type="button"
+                          onClick={() => deleteDevice(device.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -407,6 +433,96 @@ export default function ClientDetail() {
           </section>
         )}
 
+        <Modal
+          isOpen={editingDevice !== null}
+          onClose={() => {
+            if (!savingDevice) setEditingDevice(null);
+          }}
+          title="Editar dispositivo"
+        >
+          {editingDevice && (
+            <form className="device-edit-form" onSubmit={saveDevice}>
+              <header className="device-edit-form__intro">
+                <span className="device-edit-form__eyebrow">Configuración del dispositivo</span>
+                <h3>Actualiza sus datos</h3>
+                <p>Los cambios se guardarán en la ficha de este cliente.</p>
+              </header>
+
+              <div className="device-edit-form__fields">
+                <label className="form-field">
+                  <span className="form-field__label">Alias del dispositivo *</span>
+                  <input
+                    className="input"
+                    required
+                    maxLength={80}
+                    value={editAlias}
+                    onChange={(event) => setEditAlias(event.target.value)}
+                    placeholder="Ej. Salón, dormitorio..."
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span className="form-field__label">Dirección MAC *</span>
+                  <input
+                    className="input"
+                    required
+                    maxLength={64}
+                    autoCapitalize="characters"
+                    value={editMac}
+                    onChange={(event) => setEditMac(event.target.value)}
+                    placeholder="00:00:00:00:00:00"
+                  />
+                </label>
+
+                <label className="form-field">
+                  <span className="form-field__label">Aplicación asignada</span>
+                  <select className="select" value={editApp} onChange={(event) => setEditApp(event.target.value)}>
+                    <option value="">Sin aplicación asignada</option>
+                    {editingDevice.app_name && !appsList.some((item) => item.name === editingDevice.app_name) && (
+                      <option value={editingDevice.app_name}>{editingDevice.app_name}</option>
+                    )}
+                    {appsList.map((item) => (
+                      <option key={item.id} value={item.name}>{item.name}</option>
+                    ))}
+                  </select>
+                </label>
+
+                {editApp.trim().toLowerCase() === "ibo player" && (
+                  <label className="form-field">
+                    <span className="form-field__label">PIN de IBO Player</span>
+                    <input
+                      className="input"
+                      type="password"
+                      autoComplete="new-password"
+                      maxLength={12}
+                      value={editPin}
+                      onChange={(event) => setEditPin(event.target.value)}
+                      placeholder="4–12 caracteres alfanuméricos"
+                    />
+                    <span className="device-edit-form__hint">
+                      Déjalo vacío para conservar el PIN actual.
+                    </span>
+                  </label>
+                )}
+              </div>
+
+              <div className="device-edit-form__footer">
+                <button
+                  className="button button--secondary"
+                  type="button"
+                  disabled={savingDevice}
+                  onClick={() => setEditingDevice(null)}
+                >
+                  Cancelar
+                </button>
+                <button className="button button--primary" type="submit" disabled={savingDevice}>
+                  {savingDevice ? "Guardando cambios..." : "Guardar cambios"}
+                </button>
+              </div>
+            </form>
+          )}
+        </Modal>
+
         <Modal isOpen={showAddDevice} onClose={() => setShowAddDevice(false)} title="Añadir nuevo dispositivo">
           <form
             onSubmit={(e) => {
@@ -429,7 +545,7 @@ export default function ClientDetail() {
 
             <div className="form-grid">
               <div className="form-field">
-                <label className="form-field__label">App IPTV</label>
+                <label className="form-field__label">Aplicación</label>
                 <select className="select" value={app} onChange={(e) => setApp(e.target.value)}>
                   <option value="">Seleccionar aplicación</option>
                   {appsList.map((appItem) => (

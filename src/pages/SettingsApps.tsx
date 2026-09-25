@@ -72,7 +72,7 @@ export default function SettingsApps() {
     <PageShell>
       <div className="settings-apps-page">
         <PageHeader
-          title="Aplicaciones IPTV"
+          title="Aplicaciones"
           subtitle="Administra las aplicaciones disponibles para asignar a cada dispositivo."
           actions={
             <button className="button button--secondary button--sm" onClick={() => navigate("/settings")}>← Volver</button>
