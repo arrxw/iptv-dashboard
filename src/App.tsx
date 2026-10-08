@@ -18,19 +18,17 @@ function App() {
   useEffect(() => {
     supabase.auth
       .getSession()
-      .then(({ data }) => {
-        setSession(data.session);
+      .then((res: any) => {
+        setSession(res?.data?.session || null);
       });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+    const authRes: any = supabase.auth.onAuthStateChange(
+      (_event: any, session: any) => {
         setSession(session);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => authRes?.data?.subscription?.unsubscribe?.();
   }, []);
 
   if (!session) {

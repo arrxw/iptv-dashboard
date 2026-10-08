@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Settings2, X } from "lucide-react";
+import { Users, CreditCard, Link2, Settings2, X } from "lucide-react";
 
 const routeTitles: Record<string, string> = {
-  "/": "Dashboard",
+  "/": "Clientes",
   "/subscriptions": "Suscripciones",
   "/links": "Enlaces",
   "/settings": "Configuración",
@@ -70,7 +70,7 @@ function AnnouncementModal() {
           onClick={handleDismiss}
           aria-label="Cerrar aviso"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
         
         <div className="announcement-modal__content">
@@ -79,8 +79,8 @@ function AnnouncementModal() {
           <p className="announcement-modal__message">{announcement.message}</p>
         </div>
 
-        <button type="button" className="button button--primary button--lg" onClick={handleDismiss}>
-          Aceptar
+        <button type="button" className="button button--primary button--lg" style={{ width: "100%" }} onClick={handleDismiss}>
+          Entendido
         </button>
       </div>
     </div>
@@ -98,26 +98,81 @@ export default function Layout({
     if (location.pathname.startsWith("/settings/apps")) {
       return "Aplicaciones";
     }
+    if (location.pathname.startsWith("/client/")) {
+      return "Ficha de cliente";
+    }
 
     return routeTitles[location.pathname] || "Gestor de clientes";
   }, [location.pathname]);
+
+  const navItems = [
+    { to: "/", label: "Clientes", icon: Users },
+    { to: "/subscriptions", label: "Suscripciones", icon: CreditCard },
+    { to: "/links", label: "Enlaces", icon: Link2 },
+    { to: "/settings", label: "Ajustes", icon: Settings2 },
+  ];
 
   return (
     <div className="app-shell">
       <AnnouncementModal />
       <div className="app-shell__workspace">
-        <div className="topbar">
-          <div className="topbar__breadcrumb">
-            <span className="topbar__breadcrumb-label">{currentTitle}</span>
+        <header className="topbar">
+          <div className="topbar__brand-group">
+            <span className="topbar__logo-dot" />
+            <h1 className="topbar__title">{currentTitle}</h1>
           </div>
+
+          <nav className="topbar__desktop-nav" aria-label="Navegación principal">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={`topbar__nav-link ${isActive ? "topbar__nav-link--active" : ""}`}
+                >
+                  <Icon size={16} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+
           <div className="topbar__status">
-            <NavLink to="/settings" aria-label="Ajustes" className="button button--ghost topbar__settings">
+            <NavLink
+              to="/settings"
+              aria-label="Ajustes de la plataforma"
+              className="topbar__icon-btn"
+            >
               <Settings2 size={18} />
             </NavLink>
           </div>
-        </div>
+        </header>
 
         <main className="app-shell__content">{children}</main>
+
+        <nav className="mobile-nav" aria-label="Barra de navegación móvil">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.to === "/"
+                ? location.pathname === "/"
+                : location.pathname.startsWith(item.to);
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={`mobile-nav__item ${isActive ? "mobile-nav__item--active" : ""}`}
+              >
+                <div className="mobile-nav__icon-box">
+                  <Icon size={20} />
+                </div>
+                <span className="mobile-nav__label">{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
       </div>
     </div>
   );

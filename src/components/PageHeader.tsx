@@ -26,19 +26,19 @@ export default function PageHeader({
 
   return (
     <header className={`page-header ${variantClass}`.trim()}>
-      <div className="app-container">
-        <div className="page-header__inner">
-          <div className="page-header__left">
-            {backButton}
+      <div className="page-header__inner">
+        <div className="page-header__left">
+          {backButton && <div className="page-header__back">{backButton}</div>}
+          <div className="page-header__titles">
             <h1 className="page-header__title">{title}</h1>
             {subtitle && (
               <p className="page-header__subtitle">{subtitle}</p>
             )}
           </div>
-          {actions && (
-            <div className="page-header__actions">{actions}</div>
-          )}
         </div>
+        {actions && (
+          <div className="page-header__actions">{actions}</div>
+        )}
       </div>
     </header>
   );

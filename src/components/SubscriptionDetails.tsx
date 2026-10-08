@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+import { useState } from "react";
+import { Eye, EyeOff, Copy, Check, Mail, Lock, Calendar } from "lucide-react";
 
 interface Props {
   subscription: any;
@@ -6,89 +7,115 @@ interface Props {
 
 export default function SubscriptionDetails({ subscription }: Props) {
   const [showSensitive, setShowSensitive] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
   const profit = Number(subscription.sale_price) - Number(subscription.cost_price);
 
+  const copyText = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 1500);
+    } catch {
+      alert("Copiado: " + text);
+    }
+  };
+
   return (
-    <div className="card card--shadow">
-      <div className="card__header">
+    <div className="subscription-details-sheet">
+      <div className="subscription-details__header">
         <div>
-          <p className="card__eyebrow">Suscripción</p>
-          <h2 className="card__title">{subscription.services?.name}</h2>
-          <p className="card__subtitle">Cuenta {subscription.account_name}</p>
+          <span className="card__eyebrow">Detalles del Servicio</span>
+          <h2 className="card__title">{subscription.services?.name || "Servicio"}</h2>
+          <p className="subscription-details__account muted-text">
+            Cuenta: <strong>{subscription.account_name}</strong>
+          </p>
         </div>
-        <div className="card__actions">
+
+        <button
+          type="button"
+          className="button button--secondary button--sm"
+          onClick={() => setShowSensitive(!showSensitive)}
+        >
+          {showSensitive ? <EyeOff size={16} /> : <Eye size={16} />}
+          <span>{showSensitive ? "Ocultar" : "Mostrar"}</span>
+        </button>
+      </div>
+
+      <div className="subscription-details__credentials-group">
+        <div className="credential-box">
+          <div className="credential-box__info">
+            <span className="credential-box__label">
+              <Mail size={13} /> Correo de acceso
+            </span>
+            <code className="credential-box__value">{subscription.email}</code>
+          </div>
           <button
             type="button"
-            className="button button--ghost"
-            onClick={() => setShowSensitive(!showSensitive)}
+            className="button button--secondary button--sm credential-copy-btn"
+            onClick={() => copyText(subscription.email, "email")}
+            aria-label="Copiar correo"
           >
-            {showSensitive ? "🙈 Ocultar datos" : "👁 Mostrar datos"}
+            {copiedField === "email" ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+            <span>{copiedField === "email" ? "Copiado" : "Copiar"}</span>
+          </button>
+        </div>
+
+        <div className="credential-box">
+          <div className="credential-box__info">
+            <span className="credential-box__label">
+              <Lock size={13} /> Contraseña
+            </span>
+            <code className="credential-box__value">
+              {showSensitive ? subscription.password : "••••••••••••"}
+            </code>
+          </div>
+          <button
+            type="button"
+            className="button button--secondary button--sm credential-copy-btn"
+            onClick={() => copyText(subscription.password, "password")}
+            aria-label="Copiar contraseña"
+          >
+            {copiedField === "password" ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+            <span>{copiedField === "password" ? "Copiada" : "Copiar"}</span>
           </button>
         </div>
       </div>
 
-      <div className="card__body">
-        <div className="card-grid card-grid--columns-2">
-          <div>
-            <p className="text-sm text-muted">Correo</p>
-            <p className="text-strong">{subscription.email}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted">Contraseña</p>
-            <p className="text-strong">
-              {showSensitive ? subscription.password : "••••••••••"}
-            </p>
-          </div>
+      <div className="subscription-details__financials">
+        <div className="financial-cell">
+          <span className="text-muted text-xs">Coste de compra</span>
+          <strong>{showSensitive ? `${subscription.cost_price} €` : "•••"}</strong>
         </div>
-
-        <div className="card-grid card-grid--columns-3">
-          <div>
-            <p className="text-sm text-muted">Compra</p>
-            <p className="text-strong">
-              {showSensitive ? `${subscription.cost_price} €` : "••••••"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted">Venta</p>
-            <p className="text-strong">
-              {showSensitive ? `${subscription.sale_price} €` : "••••••"}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-muted">Beneficio</p>
-            <p className="text-strong">
-              {showSensitive ? `${profit.toFixed(2)} €` : "••••••"}
-            </p>
-          </div>
+        <div className="financial-cell">
+          <span className="text-muted text-xs">Precio de venta</span>
+          <strong>{showSensitive ? `${subscription.sale_price} €` : "•••"}</strong>
         </div>
-
-        <div className="divider" />
-
-        <div className="card-grid card-grid--columns-2">
-          <div>
-            <p className="text-sm text-muted">Inicio</p>
-            <p>{subscription.start_date}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted">Caduca</p>
-            <p>{subscription.end_date}</p>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <p className="text-sm text-muted">Notas</p>
-          <p>{subscription.notes || "-"}</p>
+        <div className="financial-cell financial-cell--profit">
+          <span className="text-muted text-xs">Margen de ganancia</span>
+          <strong className="text-success">
+            {showSensitive ? `+${profit.toFixed(2)} €` : "•••"}
+          </strong>
         </div>
       </div>
 
-      <div className="card__footer card__footer--actions">
-        <button type="button" className="button button--secondary button--sm">
-          ✏ Editar
-        </button>
-        <button type="button" className="button button--danger button--sm">
-          🗑 Eliminar
-        </button>
+      <div className="subscription-details__dates muted-text text-sm">
+        <div className="flex items-center gap-1">
+          <Calendar size={14} />
+          <span>Inicio: {subscription.start_date}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Calendar size={14} />
+          <span>Vencimiento: {subscription.end_date}</span>
+        </div>
       </div>
+
+      {subscription.notes && (
+        <div className="subscription-details__notes">
+          <span className="text-xs text-muted">Notas y perfiles:</span>
+          <p className="text-sm">{subscription.notes}</p>
+        </div>
+      )}
     </div>
   );
 }

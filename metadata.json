@@ -1,0 +1,7 @@
+{
+  "name": "Gestor de clientes",
+  "description": "Gestor de clientes y dispositivos para IPTV y servicios de streaming",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,5 +1,17 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  Copy,
+  Check,
+  Plus,
+  Edit2,
+  Trash2,
+  Phone,
+  Save,
+  KeyRound,
+  Calendar,
+} from "lucide-react";
 
 import { supabase } from "../services/supabase";
 import Modal from "../components/Modal";
@@ -26,6 +38,9 @@ export default function ClientDetail() {
   const [editApp, setEditApp] = useState("");
   const [editPin, setEditPin] = useState("");
   const [savingDevice, setSavingDevice] = useState(false);
+  const [copiedMacId, setCopiedMacId] = useState<string | null>(null);
+  const [copiedPinId, setCopiedPinId] = useState<string | null>(null);
+  const [deviceToDelete, setDeviceToDelete] = useState<string | null>(null);
   const [renewalConfirm, setRenewalConfirm] = useState<{
     device: Device;
     months: number;
@@ -44,6 +59,7 @@ export default function ClientDetail() {
   const [clientName, setClientName] = useState("");
   const [clientWhatsapp, setClientWhatsapp] = useState("");
   const [clientNotes, setClientNotes] = useState("");
+  const [savingClient, setSavingClient] = useState(false);
 
   async function loadData() {
     if (!id) return;
@@ -88,15 +104,33 @@ export default function ClientDetail() {
     loadApps();
   }, [id]);
 
-  async function copyMac(macAddress: string) {
-    await navigator.clipboard.writeText(macAddress);
-    alert("MAC copiada");
+  async function copyMac(macAddress: string, devId?: string) {
+    try {
+      await navigator.clipboard.writeText(macAddress);
+      if (devId) {
+        setCopiedMacId(devId);
+        setTimeout(() => setCopiedMacId(null), 2000);
+      } else {
+        alert("MAC copiada");
+      }
+    } catch {
+      alert("MAC copiada: " + macAddress);
+    }
   }
 
-  async function copyPin(pinValue: string | null | undefined) {
+  async function copyPin(pinValue: string | null | undefined, devId?: string) {
     if (!pinValue) return;
-    await navigator.clipboard.writeText(pinValue);
-    alert("PIN copiado");
+    try {
+      await navigator.clipboard.writeText(pinValue);
+      if (devId) {
+        setCopiedPinId(devId);
+        setTimeout(() => setCopiedPinId(null), 2000);
+      } else {
+        alert("PIN copiado");
+      }
+    } catch {
+      alert("PIN copiado: " + pinValue);
+    }
   }
 
   function openDeviceEditor(device: Device) {
@@ -121,8 +155,11 @@ export default function ClientDetail() {
       return;
     }
 
-    if (normalizedApp.toLowerCase() === "ibo player" && normalizedPin &&
-      !/^[A-Za-z0-9]{4,12}$/.test(normalizedPin)) {
+    if (
+      normalizedApp.toLowerCase() === "ibo player" &&
+      normalizedPin &&
+      !/^[A-Za-z0-9]{4,12}$/.test(normalizedPin)
+    ) {
       alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
       return;
     }
@@ -181,7 +218,6 @@ export default function ClientDetail() {
     const appNormalized = app.trim().toLowerCase();
     if (appNormalized === "ibo player") {
       const pinTrim = pin.trim();
-      // Validación del PIN (4-12 caracteres alfanuméricos)
       if (!/^[A-Za-z0-9]{4,12}$/.test(pinTrim)) {
         alert("PIN inválido. Debe tener entre 4 y 12 caracteres alfanuméricos.");
         return;
@@ -243,21 +279,26 @@ export default function ClientDetail() {
   }
 
   async function deleteDevice(deviceId: string) {
-    const confirmDelete = window.prompt("Escribe ELIMINAR");
-    if (confirmDelete !== "ELIMINAR") return;
+    setDeviceToDelete(deviceId);
+  }
 
-    const { error } = await supabase.from("devices").delete().eq("id", deviceId);
+  async function confirmDeleteDevice() {
+    if (!deviceToDelete) return;
+    const { error } = await supabase.from("devices").delete().eq("id", deviceToDelete);
     if (error) {
       alert(error.message);
+      setDeviceToDelete(null);
       return;
     }
-
+    setDeviceToDelete(null);
     await loadData();
+    alert("Dispositivo eliminado");
   }
 
   async function saveClient() {
     if (!id) return;
 
+    setSavingClient(true);
     const { error } = await supabase
       .from("clients")
       .update({
@@ -266,6 +307,7 @@ export default function ClientDetail() {
         notes: clientNotes,
       })
       .eq("id", id);
+    setSavingClient(false);
 
     if (error) {
       alert(error.message);
@@ -280,25 +322,63 @@ export default function ClientDetail() {
     return <LoadingScreen message="Cargando cliente..." />;
   }
 
+  const cleanWhatsapp = clientWhatsapp.replace(/[^0-9]/g, "");
+
   return (
     <PageShell>
       <div className="client-detail-page">
+        {/* Mobile-First Header with Back Navigation */}
         <PageHeader
           title={clientName || "Cliente"}
           subtitle="Gestión de información y dispositivos del cliente"
+          variant="hero"
+          backButton={
+            <button
+              type="button"
+              className="button button--secondary button--sm"
+              onClick={() => navigate("/")}
+              aria-label="Volver al dashboard"
+            >
+              <ArrowLeft size={16} />
+              <span>Volver</span>
+            </button>
+          }
           actions={
-            <button className="button button--secondary button--sm" onClick={() => navigate("/")}>Volver al dashboard</button>
+            <div className="dashboard-header-actions">
+              {cleanWhatsapp && (
+                <a
+                  href={`https://wa.me/${cleanWhatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button button--secondary button--sm"
+                  title="Contactar por WhatsApp"
+                >
+                  <Phone size={15} className="text-success" />
+                  <span>WhatsApp</span>
+                </a>
+              )}
+              <button
+                type="button"
+                className="button button--primary button--sm"
+                onClick={() => setShowAddDevice(true)}
+              >
+                <Plus size={16} />
+                <span>Añadir dispositivo</span>
+              </button>
+            </div>
           }
         />
 
+        {/* Layout móvil con datos de cliente y dispositivos */}
         <div className="grid cols-2 gap-24">
+          {/* Tarjeta de Datos del Cliente */}
           <section className="card">
             <div className="card__header">
               <h2>Datos del cliente</h2>
             </div>
             <div className="card__body">
               <div className="form-field">
-                <label className="form-field__label">Nombre</label>
+                <label className="form-field__label">Nombre completo</label>
                 <input
                   className="input"
                   value={clientName}
@@ -307,307 +387,463 @@ export default function ClientDetail() {
                 />
               </div>
 
-              <div className="form-field">
-                <label className="form-field__label">WhatsApp</label>
-                <input
-                  className="input"
-                  value={clientWhatsapp}
-                  onChange={(e) => setClientWhatsapp(e.target.value)}
-                  placeholder="+34 666 123 456"
-                />
+              <div className="form-field" style={{ marginTop: "16px" }}>
+                <label className="form-field__label">WhatsApp / Teléfono</label>
+                <div className="input-with-icon">
+                  <Phone size={18} className="input-icon text-muted" />
+                  <input
+                    className="input input--has-icon"
+                    value={clientWhatsapp}
+                    onChange={(e) => setClientWhatsapp(e.target.value)}
+                    placeholder="+34 666 123 456"
+                    inputMode="tel"
+                  />
+                </div>
               </div>
 
-              <div className="form-field">
-                <label className="form-field__label">URL del servidor</label>
+              <div className="form-field" style={{ marginTop: "16px" }}>
+                <label className="form-field__label">Notas del cliente</label>
                 <textarea
                   className="textarea"
                   value={clientNotes}
                   onChange={(e) => setClientNotes(e.target.value)}
-                  placeholder="Url del servidor o notas adicionales..."
+                  placeholder="Notas internas, pagos, preferencias..."
+                  rows={3}
                 />
               </div>
             </div>
             <div className="card__footer">
-              <button className="button button--primary button--lg" type="button" onClick={saveClient}>
-                Guardar cliente
+              <button
+                type="button"
+                className="button button--primary button--lg"
+                style={{ width: "100%" }}
+                disabled={savingClient}
+                onClick={saveClient}
+              >
+                <Save size={16} />
+                <span>{savingClient ? "Guardando..." : "Guardar cambios"}</span>
               </button>
             </div>
           </section>
 
-          <section className="card">
-            <div className="card__header">
+          {/* Sección de Dispositivos */}
+          <section className="client-devices-section">
+            <div className="section-title">
               <h2>Dispositivos ({devices.length})</h2>
-              <button className="button button--primary button--sm" type="button" onClick={() => setShowAddDevice((value) => !value)}>
-                {showAddDevice ? "Cancelar" : "+ Añadir dispositivo"}
+              <button
+                type="button"
+                className="button button--secondary button--sm"
+                onClick={() => setShowAddDevice(true)}
+              >
+                <Plus size={15} />
+                <span>Añadir</span>
               </button>
             </div>
-            <div className="card__body">
-              {devices.length === 0 ? (
-                <p className="muted-text">Sin dispositivos</p>
-              ) : (
-                <div className="device-list">
-                  {devices.map((device) => (
-                    <article key={device.id} className="device-card">
-                      <div className="device-card__main">
-                        <h3>{device.alias}</h3>
-                        <p className="device-card__detail">
-                          <span className="device-card__label">MAC</span>
-                          <span className="device-chip">{device.mac_address}</span>
-                        </p>
-                        <p className="device-card__detail">
-                          <span className="device-card__label">Aplicación</span>
-                          <span className="device-card__app">{device.app_name || "Sin aplicación asignada"}</span>
-                        </p>
-                        {device.pin && (
-                          <p className="device-card__detail">
-                            <span className="device-card__label">PIN</span>
-                            <span className="device-chip">{device.pin}</span>
-                          </p>
-                        )}
+
+            {devices.length === 0 ? (
+              <div className="empty-state card" style={{ marginTop: "16px" }}>
+                <div className="empty-state__icon">📺</div>
+                <p>Este cliente aún no tiene dispositivos asociados.</p>
+                <button
+                  type="button"
+                  className="button button--primary button--sm"
+                  onClick={() => setShowAddDevice(true)}
+                  style={{ marginTop: "12px" }}
+                >
+                  + Asociar primer dispositivo
+                </button>
+              </div>
+            ) : (
+              <div className="device-list" style={{ marginTop: "16px" }}>
+                {devices.map((device) => {
+                  const days = daysRemaining(device.end_date);
+                  const isExpired = days <= 0;
+                  const isUpcoming = days > 0 && days <= 30;
+
+                  return (
+                    <article
+                      key={device.id}
+                      className={`device-card card ${
+                        isExpired
+                          ? "device-card--danger client-card--expired"
+                          : isUpcoming
+                          ? "device-card--warning"
+                          : ""
+                      }`}
+                    >
+                      <div className="device-card__top">
+                        <div className="device-card__title-box">
+                          <h3 className="device-card__alias">{device.alias}</h3>
+                          <span className="device-card__app-tag">
+                            {device.app_name || "General"}
+                          </span>
+                        </div>
+                        <span
+                          className={`badge ${
+                            isExpired
+                              ? "badge--danger"
+                              : isUpcoming
+                              ? "badge--warning"
+                              : "badge--success"
+                          }`}
+                        >
+                          {isExpired
+                            ? `CADUCADA (${Math.abs(days)}d)`
+                            : days === 0
+                            ? "CADUCA HOY"
+                            : `${days} días`}
+                        </span>
                       </div>
 
-                      <div className="device-card__meta">
-                        <button className="button button--secondary button--sm" type="button" onClick={() => copyMac(device.mac_address)}>
-                          Copiar MAC
-                        </button>
-                        {device.pin && (
-                          <button className="button button--secondary button--sm" type="button" onClick={() => copyPin(device.pin)}>
-                            Copiar PIN
-                          </button>
-                        )}
+                      {/* Dirección MAC con botón copiar táctil */}
+                      <div className="device-credential-row">
+                        <span className="device-credential-label">MAC:</span>
+                        <code className="device-credential-code">{device.mac_address}</code>
                         <button
-                          className="button button--secondary button--sm"
                           type="button"
-                          onClick={() => openDeviceEditor(device)}
+                          className="button button--secondary button--sm credential-copy-btn"
+                          onClick={() => copyMac(device.mac_address, device.id)}
+                          aria-label="Copiar MAC"
                         >
-                          Editar
-                        </button>
-                        <button
-                          className="button button--danger button--sm"
-                          type="button"
-                          onClick={() => deleteDevice(device.id)}
-                        >
-                          Eliminar
+                          {copiedMacId === device.id ? (
+                            <>
+                              <Check size={14} className="text-success" />
+                              <span>Copiada</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              <span>Copiar</span>
+                            </>
+                          )}
                         </button>
                       </div>
+
+                      {/* PIN si existe */}
+                      {device.pin && (
+                        <div className="device-credential-row">
+                          <span className="device-credential-label">
+                            <KeyRound size={14} /> PIN:
+                          </span>
+                          <code className="device-credential-code">{device.pin}</code>
+                          <button
+                            type="button"
+                            className="button button--secondary button--sm credential-copy-btn"
+                            onClick={() => copyPin(device.pin, device.id)}
+                            aria-label="Copiar PIN"
+                          >
+                            {copiedPinId === device.id ? (
+                              <>
+                                <Check size={14} className="text-success" />
+                                <span>Copiado</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={14} />
+                                <span>Copiar</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Fechas de inicio y fin */}
+                      <div className="device-dates-row muted-text text-sm">
+                        <div className="flex items-center gap-1">
+                          <Calendar size={13} />
+                          <span>Inicio: {formatDate(device.start_date)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar size={13} />
+                          <span>Fin: {formatDate(device.end_date)}</span>
+                        </div>
+                      </div>
+
+                      {device.notes && (
+                        <p className="device-notes-text muted-text text-sm">
+                          📝 {device.notes}
+                        </p>
+                      )}
+
+                      {/* Botones de acción del dispositivo */}
+                      <div className="device-card__actions">
+                        <div className="device-card__quick-renew">
+                          <button
+                            type="button"
+                            className="button button--secondary button--sm"
+                            onClick={() => renewDevice(device, 1)}
+                            title="Renovar 1 mes"
+                          >
+                            +1m
+                          </button>
+                          <button
+                            type="button"
+                            className="button button--secondary button--sm"
+                            onClick={() => renewDevice(device, 6)}
+                            title="Renovar 6 meses"
+                          >
+                            +6m
+                          </button>
+                          <button
+                            type="button"
+                            className="button button--primary button--sm"
+                            onClick={() => renewDevice(device, 12)}
+                            title="Renovar 12 meses"
+                          >
+                            +12m
+                          </button>
+                        </div>
+
+                        <div className="device-card__manage-btns">
+                          <button
+                            type="button"
+                            className="button button--secondary button--sm"
+                            onClick={() => openDeviceEditor(device)}
+                            title="Editar dispositivo"
+                          >
+                            <Edit2 size={14} />
+                            <span>Editar</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="button button--ghost button--sm"
+                            onClick={() => deleteDevice(device.id)}
+                            title="Eliminar dispositivo"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
                     </article>
-                  ))}
-                </div>
-              )}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
         </div>
 
-        {devices.length > 0 && (
-          <section className="card">
-            <div className="card__header">
-              <h2>Renovaciones</h2>
+        {/* Modal: Añadir nuevo dispositivo */}
+        <Modal
+          isOpen={showAddDevice}
+          onClose={() => setShowAddDevice(false)}
+          title="Añadir dispositivo"
+        >
+          <div className="modal-form">
+            <div className="form-field">
+              <label className="form-field__label">Alias del dispositivo *</label>
+              <input
+                className="input"
+                placeholder="Ej. Smart TV Salón, Fire Stick..."
+                value={alias}
+                onChange={(e) => setAlias(e.target.value)}
+              />
             </div>
-            <div className="card__body">
-              <div className="card-grid card-grid--columns-2">
-                {devices.map((device) => (
-                  <article key={device.id} className="renewal-card">
-                    <div>
-                      <h3>{device.alias}</h3>
-                      <p className="muted-text">
-                        Vence: <strong>{formatDate(device.end_date)}</strong> ({daysRemaining(device.end_date)} días)
-                      </p>
-                    </div>
 
-                    <div className="renewal-actions">
-                      {[1, 3, 6, 12].map((months) => (
-                        <button
-                          key={months}
-                          className="button button--secondary button--sm"
-                          type="button"
-                          onClick={() => renewDevice(device, months)}
-                        >
-                          +{months} mes{months > 1 ? "es" : ""}
-                        </button>
-                      ))}
-                    </div>
-                  </article>
+            <div className="form-field">
+              <label className="form-field__label">Dirección MAC *</label>
+              <input
+                className="input"
+                placeholder="00:1A:79:XX:XX:XX"
+                value={mac}
+                onChange={(e) => setMac(e.target.value)}
+              />
+            </div>
+
+            <div className="form-field">
+              <label className="form-field__label">Aplicación</label>
+              <select
+                className="select"
+                value={app}
+                onChange={(e) => setApp(e.target.value)}
+              >
+                <option value="">Selecciona aplicación</option>
+                {appsList.map((a) => (
+                  <option key={a.id} value={a.name}>
+                    {a.name}
+                  </option>
                 ))}
+              </select>
+            </div>
+
+            {app.trim().toLowerCase() === "ibo player" && (
+              <div className="form-field">
+                <label className="form-field__label">PIN (Ibo Player) *</label>
+                <input
+                  className="input"
+                  placeholder="PIN alfanumérico (4-12 caracteres)"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="form-grid">
+              <div className="form-field">
+                <label className="form-field__label">Fecha de inicio *</label>
+                <input
+                  className="input"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-field__label">Duración</label>
+                <select
+                  className="select"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                >
+                  <option value="1">1 mes</option>
+                  <option value="3">3 meses</option>
+                  <option value="6">6 meses</option>
+                  <option value="12">12 meses (1 año)</option>
+                  <option value="24">24 meses (2 años)</option>
+                </select>
               </div>
             </div>
-          </section>
-        )}
 
+            <div className="form-field">
+              <label className="form-field__label">Notas del dispositivo</label>
+              <textarea
+                className="textarea"
+                placeholder="Detalles técnicos, conexión, etc."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+              />
+            </div>
+
+            <div className="modal-footer" style={{ marginTop: "16px" }}>
+              <button
+                type="button"
+                className="button button--secondary button--lg"
+                onClick={() => setShowAddDevice(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="button button--primary button--lg"
+                onClick={addDevice}
+              >
+                Guardar dispositivo
+              </button>
+            </div>
+          </div>
+        </Modal>
+
+        {/* Modal: Editar dispositivo */}
         <Modal
-          isOpen={editingDevice !== null}
-          onClose={() => {
-            if (!savingDevice) setEditingDevice(null);
-          }}
+          isOpen={!!editingDevice}
+          onClose={() => setEditingDevice(null)}
           title="Editar dispositivo"
         >
           {editingDevice && (
-            <form className="device-edit-form" onSubmit={saveDevice}>
-              <header className="device-edit-form__intro">
-                <span className="device-edit-form__eyebrow">Configuración del dispositivo</span>
-                <h3>Actualiza sus datos</h3>
-                <p>Los cambios se guardarán en la ficha de este cliente.</p>
-              </header>
-
-              <div className="device-edit-form__fields">
-                <label className="form-field">
-                  <span className="form-field__label">Alias del dispositivo *</span>
-                  <input
-                    className="input"
-                    required
-                    maxLength={80}
-                    value={editAlias}
-                    onChange={(event) => setEditAlias(event.target.value)}
-                    placeholder="Ej. Salón, dormitorio..."
-                  />
-                </label>
-
-                <label className="form-field">
-                  <span className="form-field__label">Dirección MAC *</span>
-                  <input
-                    className="input"
-                    required
-                    maxLength={64}
-                    autoCapitalize="characters"
-                    value={editMac}
-                    onChange={(event) => setEditMac(event.target.value)}
-                    placeholder="00:00:00:00:00:00"
-                  />
-                </label>
-
-                <label className="form-field">
-                  <span className="form-field__label">Aplicación asignada</span>
-                  <select className="select" value={editApp} onChange={(event) => setEditApp(event.target.value)}>
-                    <option value="">Sin aplicación asignada</option>
-                    {editingDevice.app_name && !appsList.some((item) => item.name === editingDevice.app_name) && (
-                      <option value={editingDevice.app_name}>{editingDevice.app_name}</option>
-                    )}
-                    {appsList.map((item) => (
-                      <option key={item.id} value={item.name}>{item.name}</option>
-                    ))}
-                  </select>
-                </label>
-
-                {editApp.trim().toLowerCase() === "ibo player" && (
-                  <label className="form-field">
-                    <span className="form-field__label">PIN de IBO Player</span>
-                    <input
-                      className="input"
-                      type="password"
-                      autoComplete="new-password"
-                      maxLength={12}
-                      value={editPin}
-                      onChange={(event) => setEditPin(event.target.value)}
-                      placeholder="4–12 caracteres alfanuméricos"
-                    />
-                    <span className="device-edit-form__hint">
-                      Déjalo vacío para conservar el PIN actual.
-                    </span>
-                  </label>
-                )}
+            <form onSubmit={saveDevice} className="modal-form">
+              <div className="form-field">
+                <label className="form-field__label">Alias *</label>
+                <input
+                  className="input"
+                  value={editAlias}
+                  onChange={(e) => setEditAlias(e.target.value)}
+                  required
+                />
               </div>
 
-              <div className="device-edit-form__footer">
+              <div className="form-field">
+                <label className="form-field__label">Dirección MAC *</label>
+                <input
+                  className="input"
+                  value={editMac}
+                  onChange={(e) => setEditMac(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-field">
+                <label className="form-field__label">Aplicación</label>
+                <select
+                  className="select"
+                  value={editApp}
+                  onChange={(e) => setEditApp(e.target.value)}
+                >
+                  <option value="">Ninguna / Otra</option>
+                  {appsList.map((a) => (
+                    <option key={a.id} value={a.name}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {editApp.trim().toLowerCase() === "ibo player" && (
+                <div className="form-field">
+                  <label className="form-field__label">PIN (Ibo Player)</label>
+                  <input
+                    className="input"
+                    value={editPin}
+                    onChange={(e) => setEditPin(e.target.value)}
+                    placeholder="PIN alfanumérico (4-12 caracteres)"
+                  />
+                </div>
+              )}
+
+              <div className="modal-footer" style={{ marginTop: "16px" }}>
                 <button
-                  className="button button--secondary"
                   type="button"
-                  disabled={savingDevice}
+                  className="button button--secondary button--lg"
                   onClick={() => setEditingDevice(null)}
                 >
                   Cancelar
                 </button>
-                <button className="button button--primary" type="submit" disabled={savingDevice}>
-                  {savingDevice ? "Guardando cambios..." : "Guardar cambios"}
+                <button
+                  type="submit"
+                  className="button button--primary button--lg"
+                  disabled={savingDevice}
+                >
+                  {savingDevice ? "Guardando..." : "Actualizar dispositivo"}
                 </button>
               </div>
             </form>
           )}
         </Modal>
 
-        <Modal isOpen={showAddDevice} onClose={() => setShowAddDevice(false)} title="Añadir nuevo dispositivo">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              addDevice();
-            }}
-            className="modal-form"
-          >
-            <div className="form-grid">
-              <div className="form-field">
-                <label className="form-field__label">Alias *</label>
-                <input className="input" placeholder="Nombre del dispositivo" value={alias} onChange={(e) => setAlias(e.target.value)} />
-              </div>
-
-              <div className="form-field">
-                <label className="form-field__label">MAC *</label>
-                <input className="input" placeholder="Dirección MAC" value={mac} onChange={(e) => setMac(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="form-grid">
-              <div className="form-field">
-                <label className="form-field__label">Aplicación</label>
-                <select className="select" value={app} onChange={(e) => setApp(e.target.value)}>
-                  <option value="">Seleccionar aplicación</option>
-                  {appsList.map((appItem) => (
-                    <option key={appItem.id} value={appItem.name}>
-                      {appItem.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* PIN sólo visible para Ibo Player (case-insensitive) */}
-              {app.trim().toLowerCase() === "ibo player" && (
-                <div className="form-field">
-                  <label className="form-field__label">PIN</label>
-                  <input className="input" placeholder="PIN para Ibo Player" value={pin} onChange={(e) => setPin(e.target.value)} />
-                </div>
-              )}
-
-              <div className="form-field">
-                <label className="form-field__label">Inicio *</label>
-                <input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="form-grid">
-              <div className="form-field">
-                <label className="form-field__label">Duración *</label>
-                <select className="select" value={duration} onChange={(e) => setDuration(e.target.value)}>
-                  <option value="3">3 meses</option>
-                  <option value="6">6 meses</option>
-                  <option value="9">9 meses</option>
-                  <option value="12">12 meses</option>
-                </select>
-              </div>
-
-              <div className="form-field">
-                <label className="form-field__label">Notas</label>
-                <textarea className="textarea" placeholder="Notas del dispositivo" value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </div>
-            </div>
-
-            <button type="submit" className="button button--primary button--lg">
-              Añadir dispositivo
-            </button>
-          </form>
-        </Modal>
-
+        {/* Diálogo de Confirmación: Eliminar Dispositivo */}
         <ConfirmDialog
-          isOpen={renewalConfirm?.step === "first"}
-          title="Confirmar renovación"
-          message={`¿Seguro que quieres renovar este dispositivo por ${renewalConfirm?.months || 1} ${renewalConfirm?.months === 1 ? "mes" : "meses"}?`}
-          onConfirm={() => confirmRenewal()}
-          onCancel={() => setRenewalConfirm(null)}
+          isOpen={!!deviceToDelete}
+          title="⚠️ Eliminar dispositivo"
+          message="¿Seguro que deseas eliminar este dispositivo? Esta acción no se puede deshacer."
+          onConfirm={confirmDeleteDevice}
+          onCancel={() => setDeviceToDelete(null)}
+          danger
+          confirmLabel="Eliminar"
+          cancelLabel="Cancelar"
         />
 
-        <ConfirmDialog
-          isOpen={renewalConfirm?.step === "second"}
-          title="Confirmar renovación (2/2)"
-          message="Esta acción modificará la fecha de vencimiento del dispositivo. ¿Deseas continuar?"
-          onConfirm={() => confirmRenewal()}
-          onCancel={() => setRenewalConfirm(null)}
-        />
+        {/* Diálogo de Renovación en 2 pasos */}
+        {renewalConfirm && (
+          <ConfirmDialog
+            isOpen={true}
+            title={
+              renewalConfirm.step === "first"
+                ? "Renovar dispositivo"
+                : "Confirmar renovación"
+            }
+            message={
+              renewalConfirm.step === "first"
+                ? `¿Deseas extender la suscripción de "${renewalConfirm.device.alias}" por ${renewalConfirm.months} meses adicionales?`
+                : `Se actualizará la fecha de vencimiento a partir de hoy (+${renewalConfirm.months} meses). ¿Confirmas la operación?`
+            }
+            onConfirm={confirmRenewal}
+            onCancel={() => setRenewalConfirm(null)}
+            confirmLabel={
+              renewalConfirm.step === "first" ? "Continuar" : "Sí, renovar ahora"
+            }
+            cancelLabel="Cancelar"
+          />
+        )}
       </div>
     </PageShell>
   );

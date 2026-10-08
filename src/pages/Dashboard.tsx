@@ -1,5 +1,21 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Search,
+  Plus,
+  AlertTriangle,
+  AlertOctagon,
+  SlidersHorizontal,
+  X,
+  Phone,
+  Trash2,
+  Tv,
+  ChevronRight,
+  RotateCcw,
+  LogOut,
+  CreditCard,
+  Link2,
+} from "lucide-react";
 
 import { supabase } from "../services/supabase";
 import NewClient from "./NewClient";
@@ -25,6 +41,7 @@ export default function Dashboard() {
   const [showNewClient, setShowNewClient] = useState(false);
   const [showUpcoming, setShowUpcoming] = useState(false);
   const [showExpired, setShowExpired] = useState(false);
+  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<{ id: string; name: string } | null>(null);
   const navigate = useNavigate();
 
@@ -190,6 +207,13 @@ export default function Dashboard() {
     setCurrentPage(1);
   }
 
+  const activeFiltersCount =
+    (appFilter ? 1 : 0) +
+    (statusFilter !== "all" ? 1 : 0) +
+    (expirationFrom ? 1 : 0) +
+    (expirationTo ? 1 : 0) +
+    (sortOrder !== "name-asc" ? 1 : 0);
+
   if (loading) {
     return <LoadingScreen message="Cargando clientes..." />;
   }
@@ -203,126 +227,246 @@ export default function Dashboard() {
   return (
     <PageShell>
       <div className="dashboard-page">
+        {/* Mobile-First Header */}
         <PageHeader
           title="Gestor de clientes"
           subtitle="Visión completa de clientes, dispositivos y fechas de caducidad."
           variant="hero"
           actions={
             <div className="dashboard-header-actions">
-              <button className="button button--secondary button--sm" onClick={() => navigate("/subscriptions")}>Suscripciones</button>
-              <button className="button button--secondary button--sm" onClick={logout}>Cerrar sesión</button>
+              <button
+                className="button button--secondary button--sm"
+                onClick={() => navigate("/subscriptions")}
+                title="Ir a Suscripciones"
+              >
+                <CreditCard size={15} />
+                <span>Suscripciones</span>
+              </button>
+              <button
+                className="button button--secondary button--sm"
+                onClick={() => navigate("/links")}
+                title="Ir a Enlaces"
+              >
+                <Link2 size={15} />
+                <span>Enlaces</span>
+              </button>
+              <button
+                className="button button--ghost button--sm"
+                onClick={logout}
+                title="Cerrar sesión"
+              >
+                <LogOut size={15} />
+                <span>Salir</span>
+              </button>
             </div>
           }
         />
 
+        {/* Mobile Quick KPI Metric Bar */}
+        <section className="mobile-stats-row" aria-label="Métricas rápidas">
+          <div className="stat-card">
+            <span className="stat-card__label">Clientes</span>
+            <strong className="stat-card__val">{clients.length}</strong>
+          </div>
+          <div className="stat-card">
+            <span className="stat-card__label">Dispositivos</span>
+            <strong className="stat-card__val">{devices.length}</strong>
+          </div>
+          {upcomingDevices.length > 0 && (
+            <button
+              type="button"
+              className={`stat-card stat-card--interactive ${showUpcoming ? "stat-card--active-warning" : ""}`}
+              onClick={() => setShowUpcoming((v) => !v)}
+            >
+              <span className="stat-card__label">⚠️ Por vencer</span>
+              <strong className="stat-card__val stat-card__val--warning">
+                {upcomingDevices.length}
+              </strong>
+            </button>
+          )}
+          {expiredDevices.length > 0 && (
+            <button
+              type="button"
+              className={`stat-card stat-card--interactive ${showExpired ? "stat-card--active-danger" : ""}`}
+              onClick={() => setShowExpired((v) => !v)}
+            >
+              <span className="stat-card__label">🚨 Caducados</span>
+              <strong className="stat-card__val stat-card__val--danger">
+                {expiredDevices.length}
+              </strong>
+            </button>
+          )}
+        </section>
+
+        {/* Mobile Sticky-friendly Search & Primary Action Row */}
         <section className="dashboard-toolbar">
-          <div className="dashboard-search">
-            <input
-              className="input"
-              placeholder="Buscar cliente, alias, MAC o aplicación..."
-              value={search}
-              onChange={(e) => resetPage(setSearch, e.target.value)}
-              aria-label="Buscar clientes y dispositivos"
-            />
+          <div className="dashboard-search-wrap">
+            <div className="input-with-icon">
+              <Search size={18} className="input-icon" />
+              <input
+                className="input input--has-icon"
+                placeholder="Buscar cliente, alias, MAC..."
+                value={search}
+                onChange={(e) => resetPage(setSearch, e.target.value)}
+                aria-label="Buscar clientes y dispositivos"
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="input-clear-btn"
+                  onClick={() => resetPage(setSearch, "")}
+                  aria-label="Limpiar búsqueda"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="dashboard-actions">
+          <div className="dashboard-primary-controls">
             <button
-              className="button button--primary button--sm"
+              type="button"
+              className="button button--primary button--lg dashboard-btn-main"
               onClick={() => setShowNewClient((value) => !value)}
             >
-              {showNewClient ? "Ocultar formulario" : "+ Nuevo cliente"}
+              <Plus size={18} />
+              <span>{showNewClient ? "Cerrar formulario" : "Nuevo cliente"}</span>
             </button>
-            {upcomingDevices.length > 0 && (
-              <button
-                className="button button--warning button--sm"
-                onClick={() => setShowUpcoming((value) => !value)}
-              >
-                ⚠️ {upcomingDevices.length} próximos
-              </button>
-            )}
-            {expiredDevices.length > 0 && (
-              <button
-                className="button button--danger button--sm"
-                onClick={() => setShowExpired((value) => !value)}
-              >
-                🚨 Caducados ({expiredDevices.length})
-              </button>
-            )}
+
             <button
-              className="button button--secondary button--sm"
-              onClick={() => navigate("/links")}
+              type="button"
+              className={`button button--secondary button--lg dashboard-btn-filter ${
+                activeFiltersCount > 0 ? "button--filter-active" : ""
+              }`}
+              onClick={() => setShowFilterDrawer((v) => !v)}
+              aria-label="Filtros y ordenación"
             >
-              Enlaces
+              <SlidersHorizontal size={18} />
+              <span>Filtros</span>
+              {activeFiltersCount > 0 && (
+                <span className="filter-badge-counter">{activeFiltersCount}</span>
+              )}
             </button>
           </div>
         </section>
 
-        <section className="dashboard-filters card" aria-label="Filtros de clientes">
-          <div className="dashboard-filters__grid">
-            <label className="form-field">
-              <span className="form-field__label">Aplicación</span>
-              <select className="select" value={appFilter} onChange={(event) => resetPage(setAppFilter, event.target.value)}>
-                <option value="">Todas las aplicaciones</option>
-                {availableApps.map((appName) => <option key={appName} value={appName}>{appName}</option>)}
-              </select>
-            </label>
+        {/* Responsive Filters Accordion / Tray */}
+        {showFilterDrawer && (
+          <section className="dashboard-filters card" aria-label="Filtros de clientes">
+            <div className="dashboard-filters__header">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={16} />
+                <strong style={{ fontSize: "14px" }}>Filtros avanzados</strong>
+              </div>
+              <button
+                type="button"
+                className="button button--ghost button--sm"
+                onClick={() => {
+                  setAppFilter("");
+                  setStatusFilter("all");
+                  setExpirationFrom("");
+                  setExpirationTo("");
+                  setSortOrder("name-asc");
+                  setSearch("");
+                  setCurrentPage(1);
+                }}
+              >
+                <RotateCcw size={14} />
+                <span>Restablecer</span>
+              </button>
+            </div>
 
-            <label className="form-field">
-              <span className="form-field__label">Estado</span>
-              <select className="select" value={statusFilter} onChange={(event) => resetPage(setStatusFilter, event.target.value)}>
-                <option value="all">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="upcoming">Por vencer (30 días)</option>
-                <option value="expired">Caducados</option>
-                <option value="inactive">Desactivados</option>
-              </select>
-            </label>
+            <div className="dashboard-filters__grid">
+              <label className="form-field">
+                <span className="form-field__label">Aplicación</span>
+                <select
+                  className="select"
+                  value={appFilter}
+                  onChange={(event) => resetPage(setAppFilter, event.target.value)}
+                >
+                  <option value="">Todas las aplicaciones</option>
+                  {availableApps.map((appName) => (
+                    <option key={appName} value={appName}>
+                      {appName}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-            <label className="form-field">
-              <span className="form-field__label">Vence desde</span>
-              <input className="input" type="date" value={expirationFrom} max={expirationTo || undefined} onChange={(event) => resetPage(setExpirationFrom, event.target.value)} />
-            </label>
+              <label className="form-field">
+                <span className="form-field__label">Estado del Dispositivo</span>
+                <select
+                  className="select"
+                  value={statusFilter}
+                  onChange={(event) => resetPage(setStatusFilter, event.target.value)}
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="active">Activos</option>
+                  <option value="upcoming">Por vencer (30 días)</option>
+                  <option value="expired">Caducados</option>
+                  <option value="inactive">Desactivados</option>
+                </select>
+              </label>
 
-            <label className="form-field">
-              <span className="form-field__label">Vence hasta</span>
-              <input className="input" type="date" value={expirationTo} min={expirationFrom || undefined} onChange={(event) => resetPage(setExpirationTo, event.target.value)} />
-            </label>
+              <label className="form-field">
+                <span className="form-field__label">Vence desde</span>
+                <input
+                  className="input"
+                  type="date"
+                  value={expirationFrom}
+                  max={expirationTo || undefined}
+                  onChange={(event) => resetPage(setExpirationFrom, event.target.value)}
+                />
+              </label>
 
-            <label className="form-field">
-              <span className="form-field__label">Ordenar por</span>
-              <select className="select" value={sortOrder} onChange={(event) => resetPage(setSortOrder, event.target.value)}>
-                <option value="name-asc">Nombre (A–Z)</option>
-                <option value="name-desc">Nombre (Z–A)</option>
-                <option value="expiration-asc">Vencimiento más próximo</option>
-                <option value="expiration-desc">Vencimiento más lejano</option>
-                <option value="created-desc">Añadidos recientemente</option>
-              </select>
-            </label>
+              <label className="form-field">
+                <span className="form-field__label">Vence hasta</span>
+                <input
+                  className="input"
+                  type="date"
+                  value={expirationTo}
+                  min={expirationFrom || undefined}
+                  onChange={(event) => resetPage(setExpirationTo, event.target.value)}
+                />
+              </label>
+
+              <label className="form-field">
+                <span className="form-field__label">Ordenar por</span>
+                <select
+                  className="select"
+                  value={sortOrder}
+                  onChange={(event) => resetPage(setSortOrder, event.target.value)}
+                >
+                  <option value="name-asc">Nombre (A–Z)</option>
+                  <option value="name-desc">Nombre (Z–A)</option>
+                  <option value="expiration-asc">Vencimiento más próximo</option>
+                  <option value="expiration-desc">Vencimiento más lejano</option>
+                  <option value="created-desc">Añadidos recientemente</option>
+                </select>
+              </label>
+            </div>
+          </section>
+        )}
+
+        {/* Formulario nuevo cliente inline/modal */}
+        {showNewClient && (
+          <div className="new-client-box">
+            <NewClient
+              onCreated={() => {
+                setShowNewClient(false);
+                loadClients();
+              }}
+            />
           </div>
-          <button
-            type="button"
-            className="button button--secondary button--sm"
-            onClick={() => {
-              setAppFilter("");
-              setStatusFilter("all");
-              setExpirationFrom("");
-              setExpirationTo("");
-              setSortOrder("name-asc");
-              setSearch("");
-              setCurrentPage(1);
-            }}
-          >
-            Limpiar filtros
-          </button>
-        </section>
+        )}
 
-        {showNewClient && <NewClient onCreated={loadClients} />}
-
+        {/* Diálogo de confirmación para eliminar cliente */}
         <ConfirmDialog
           isOpen={!!clientToDelete}
           title="⚠️ Eliminar cliente"
-          message={"¿Estás seguro de que quieres eliminar este cliente?\n\nEsta acción eliminará el cliente y sus dispositivos asociados."}
+          message={
+            "¿Estás seguro de que quieres eliminar este cliente?\n\nEsta acción eliminará el cliente y sus dispositivos asociados."
+          }
           onConfirm={confirmDeleteClient}
           onCancel={() => setClientToDelete(null)}
           danger
@@ -330,9 +474,23 @@ export default function Dashboard() {
           cancelLabel="Cancelar"
         />
 
+        {/* Panel de alertas para Caducados */}
         {showExpired && expiredDevices.length > 0 && (
           <div className="alert-panel alert-panel--critical">
-            <strong>Caducados ({expiredDevices.length})</strong>
+            <div className="alert-panel__top">
+              <div className="flex items-center gap-2">
+                <AlertOctagon size={18} className="text-danger" />
+                <strong>Dispositivos Caducados ({expiredDevices.length})</strong>
+              </div>
+              <button
+                type="button"
+                className="input-clear-btn"
+                onClick={() => setShowExpired(false)}
+                aria-label="Ocultar caducados"
+              >
+                <X size={16} />
+              </button>
+            </div>
             <div className="alert-list">
               {expiredDevices.map((device) => {
                 const client = clients.find((c) => c.id === device.client_id);
@@ -341,16 +499,21 @@ export default function Dashboard() {
                   <button
                     key={device.id}
                     type="button"
-                    className="alert-item"
+                    className="alert-item alert-item--danger"
                     onClick={() => navigate(`/client/${device.client_id}`)}
                   >
-                    <div>
-                      <p className="alert-item__title">{client?.name}</p>
-                      <p className="alert-item__subtitle">{device.alias}</p>
+                    <div className="alert-item__body">
+                      <p className="alert-item__title">{client?.name || "Sin cliente"}</p>
+                      <p className="alert-item__subtitle">
+                        {device.alias} · {device.app_name || "App"}
+                      </p>
                     </div>
-                    <span className="badge badge--danger">
-                      {days === 0 ? "CADUCA HOY" : `CADUCADA ${Math.abs(days)}d`}
-                    </span>
+                    <div className="alert-item__meta">
+                      <span className="badge badge--danger">
+                        {days === 0 ? "CADUCA HOY" : `CADUCADO HACE ${Math.abs(days)}d`}
+                      </span>
+                      <ChevronRight size={16} className="alert-item__arrow" />
+                    </div>
                   </button>
                 );
               })}
@@ -358,9 +521,23 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Panel de alertas para Próximos */}
         {showUpcoming && (
           <div className="alert-panel alert-panel--warning">
-            <strong>Próximos a caducar</strong>
+            <div className="alert-panel__top">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={18} className="text-warning" />
+                <strong>Próximos a caducar en 30 días ({upcomingDevices.length})</strong>
+              </div>
+              <button
+                type="button"
+                className="input-clear-btn"
+                onClick={() => setShowUpcoming(false)}
+                aria-label="Ocultar próximos"
+              >
+                <X size={16} />
+              </button>
+            </div>
             <div className="alert-list alert-list--stacked">
               {upcomingDevices.map((device) => {
                 const client = clients.find((c) => c.id === device.client_id);
@@ -373,18 +550,19 @@ export default function Dashboard() {
                     className={`alert-item alert-item--${status}`}
                     onClick={() => navigate(`/client/${device.client_id}`)}
                   >
-                    <div>
-                      <p className="alert-item__title">{client?.name}</p>
-                      <p className="alert-item__subtitle">{device.alias}</p>
+                    <div className="alert-item__body">
+                      <p className="alert-item__title">{client?.name || "Sin cliente"}</p>
+                      <p className="alert-item__subtitle">
+                        {device.alias} · {device.app_name || "App"}
+                      </p>
                       <p className="alert-item__date">{formatDate(device.end_date)}</p>
                     </div>
-                    <span className="status-chip">
-                      {days < 0
-                        ? `CADUCADA ${Math.abs(days)}d`
-                        : days === 0
-                        ? "HOY"
-                        : `${days}d`}
-                    </span>
+                    <div className="alert-item__meta">
+                      <span className="status-chip">
+                        {days === 0 ? "CADUCA HOY" : `En ${days} días`}
+                      </span>
+                      <ChevronRight size={16} className="alert-item__arrow" />
+                    </div>
                   </button>
                 );
               })}
@@ -392,69 +570,144 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Sección de Lista de Clientes */}
         <div className="section-title">
           <h2>Clientes ({filteredClients.length})</h2>
+          {activeFiltersCount > 0 && (
+            <span className="muted-text text-sm">Filtros aplicados</span>
+          )}
         </div>
 
         {filteredClients.length === 0 ? (
           <div className="empty-state card">
-            <p>{clients.length === 0 ? "No hay clientes aún." : "No hay clientes que coincidan con la búsqueda y los filtros."}</p>
+            <div className="empty-state__icon">👥</div>
+            <p className="empty-state__msg">
+              {clients.length === 0
+                ? "No hay clientes registrados todavía."
+                : "No se encontraron clientes con los filtros seleccionados."}
+            </p>
+            {clients.length === 0 ? (
+              <button
+                type="button"
+                className="button button--primary button--sm"
+                onClick={() => setShowNewClient(true)}
+              >
+                + Crear primer cliente
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="button button--secondary button--sm"
+                onClick={() => {
+                  setSearch("");
+                  setAppFilter("");
+                  setStatusFilter("all");
+                  setExpirationFrom("");
+                  setExpirationTo("");
+                }}
+              >
+                Limpiar búsqueda
+              </button>
+            )}
           </div>
         ) : (
           <div className="card-grid card-grid--columns-3">
             {visibleClients.map(({ client }) => {
               const minDays = getMinDaysRemaining(client.id);
               const status = getAlertStatus(minDays);
+              const hasWhatsapp = Boolean(client.whatsapp?.trim());
+
               return (
-                <button
+                <div
                   key={client.id}
-                  type="button"
                   className={`client-card client-card--${status} ${minDays <= 0 ? "client-card--expired" : ""}`}
                   onClick={() => navigate(`/client/${client.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") navigate(`/client/${client.id}`);
+                  }}
                 >
                   <div className="client-card__header">
-                    <div>
-                      <h3>{client.name}</h3>
-                     
+                    <div className="client-card__name-block">
+                      <h3 className="client-card__title">{client.name}</h3>
+                      {client.notes && (
+                        <p className="client-card__notes">{client.notes}</p>
+                      )}
                     </div>
                     {minDays < 30 && (
-                      <span className={`badge badge--${status === "critical" ? "danger" : status}`}>{minDays === 1 ? "Hoy" : `${minDays}d`}</span>
+                      <span
+                        className={`badge ${
+                          minDays <= 0
+                            ? "badge--danger"
+                            : status === "critical"
+                            ? "badge--danger"
+                            : "badge--warning"
+                        }`}
+                      >
+                        {minDays <= 0
+                          ? "CADUCADO"
+                          : minDays === 1
+                          ? "1 día"
+                          : `${minDays}d`}
+                      </span>
                     )}
                   </div>
 
                   <div className="client-card__content">
-                    <div className="client-card__row">
-                      <span className="card-pill">{client.devicesCount} dispositivo{client.devicesCount !== 1 ? "s" : ""}</span>
+                    <div className="client-card__devices-indicator">
+                      <Tv size={15} className="text-muted" />
+                      <span>
+                        {client.devicesCount} dispositivo{client.devicesCount !== 1 ? "s" : ""}
+                      </span>
                     </div>
+
                     {minDays < 30 && (
                       <p className="client-card__status">
-                        ⏰ Caduca en {minDays === 1 ? "1 día" : `${minDays} días`}
+                        ⏰ {minDays <= 0 ? "Suscripción vencida" : `Vence en ${minDays} días`}
                       </p>
                     )}
                   </div>
 
                   <div className="client-card__footer">
+                    {hasWhatsapp && (
+                      <a
+                        href={`https://wa.me/${client.whatsapp?.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="button button--secondary button--sm client-card__wa-btn"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Contactar por WhatsApp"
+                      >
+                        <Phone size={14} className="text-success" />
+                        <span>WhatsApp</span>
+                      </a>
+                    )}
+
                     <button
                       type="button"
-                      className="button button--secondary button--sm"
+                      className="button button--ghost button--sm client-card__del-btn"
                       onClick={(event) => {
                         event.stopPropagation();
                         deleteClient(client.id, client.name);
                       }}
+                      title="Eliminar cliente"
                     >
-                      🗑 Eliminar
+                      <Trash2 size={14} />
+                      <span>Eliminar</span>
                     </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
         )}
 
-        {filteredClients.length > 0 && (
+        {/* Paginación Mobile-First */}
+        {filteredClients.length > pageSize && (
           <nav className="dashboard-pagination" aria-label="Paginación de clientes">
-            <span className="muted-text">
-              Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredClients.length)} de {filteredClients.length}
+            <span className="dashboard-pagination__info muted-text">
+              {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredClients.length)} de {filteredClients.length}
             </span>
             <div className="dashboard-pagination__actions">
               <button
@@ -465,7 +718,9 @@ export default function Dashboard() {
               >
                 Anterior
               </button>
-              <span className="dashboard-pagination__page">Página {page} de {totalPages}</span>
+              <span className="dashboard-pagination__page">
+                {page} / {totalPages}
+              </span>
               <button
                 type="button"
                 className="button button--secondary button--sm"

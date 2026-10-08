@@ -1,132 +1,110 @@
+import { Calendar, Mail, Edit2, RotateCcw, Trash2 } from "lucide-react";
+
 interface Props {
   subscription: any;
+  onEdit?: () => void;
+  onRenew?: () => void;
+  onDelete?: () => void;
 }
 
 export default function SubscriptionCard({
   subscription,
+  onEdit,
+  onRenew,
+  onDelete,
 }: Props) {
-  const profit =
-    Number(subscription.sale_price) -
-    Number(subscription.cost_price);
+  const cost = Number(subscription.cost_price) || 0;
+  const sale = Number(subscription.sale_price) || 0;
+  const profit = sale - cost;
 
-  const profitColor =
-    profit > 0
-      ? "#16a34a"
-      : profit < 0
-      ? "#dc2626"
-      : "#f59e0b";
+  const isProfitPositive = profit > 0;
 
   return (
-    <div
-      style={{
-        background: "white",
-        borderRadius: "18px",
-        padding: "22px",
-        boxShadow: "0 6px 20px rgba(0,0,0,.08)",
-        display: "flex",
-        flexDirection: "column",
-        gap: "14px",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <h2
-          style={{
-            margin: 0,
-            fontSize: "22px",
-          }}
-        >
-          {subscription.services?.name}
-        </h2>
+    <div className="subscription-card card">
+      <div className="subscription-card__header">
+        <div>
+          <h3 className="subscription-card__title">
+            {subscription.services?.name || "Suscripción"}
+          </h3>
+          <p className="subscription-card__account muted-text text-sm">
+            {subscription.account_name}
+          </p>
+        </div>
 
-        <span
-          style={{
-            background: "#ede9fe",
-            color: "#6d28d9",
-            padding: "6px 12px",
-            borderRadius: "999px",
-            fontSize: "13px",
-            fontWeight: "600",
-          }}
-        >
+        <span className="badge badge--success">
           Activa
         </span>
       </div>
 
-      <div>
-        <strong>Cuenta</strong>
-
-        <br />
-
-        {subscription.account_name}
-      </div>
-
-      <div>
-        <strong>Correo</strong>
-
-        <br />
-
-        {subscription.email}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <strong>Compra</strong>
-
-          <br />
-
-          {subscription.cost_price} €
+      <div className="subscription-card__body">
+        <div className="subscription-card__detail-row">
+          <Mail size={15} className="text-muted" />
+          <span className="text-sm">{subscription.email}</span>
         </div>
 
-        <div>
-          <strong>Venta</strong>
+        <div className="subscription-card__prices-row">
+          <div className="subscription-card__price-item">
+            <span className="text-muted text-xs">Coste:</span>
+            <strong>{cost.toFixed(2)} €</strong>
+          </div>
+          <div className="subscription-card__price-item">
+            <span className="text-muted text-xs">PVP:</span>
+            <strong>{sale.toFixed(2)} €</strong>
+          </div>
+          <div className="subscription-card__price-item subscription-card__price-item--profit">
+            <span className="text-muted text-xs">Beneficio:</span>
+            <span
+              className={`text-strong ${
+                isProfitPositive ? "text-success" : "text-danger"
+              }`}
+            >
+              {isProfitPositive ? "+" : ""}
+              {profit.toFixed(2)} €
+            </span>
+          </div>
+        </div>
 
-          <br />
-
-          {subscription.sale_price} €
+        <div className="subscription-card__detail-row muted-text text-xs" style={{ marginTop: "10px" }}>
+          <Calendar size={14} />
+          <span>Vencimiento: {subscription.end_date}</span>
         </div>
       </div>
 
-      <div
-        style={{
-          fontWeight: "700",
-          color: profitColor,
-          fontSize: "18px",
-        }}
-      >
-        Beneficio: {profit.toFixed(2)} €
-      </div>
+      <div className="subscription-card__actions-row">
+        {onEdit && (
+          <button
+            type="button"
+            className="button button--secondary button--sm"
+            onClick={onEdit}
+            title="Editar suscripción"
+          >
+            <Edit2 size={14} />
+            <span>Editar</span>
+          </button>
+        )}
 
-      <div>
-        <strong>Caduca</strong>
+        {onRenew && (
+          <button
+            type="button"
+            className="button button--primary button--sm"
+            onClick={onRenew}
+            title="Renovar suscripción"
+          >
+            <RotateCcw size={14} />
+            <span>Renovar</span>
+          </button>
+        )}
 
-        <br />
-
-        {subscription.end_date}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          marginTop: "10px",
-        }}
-      >
-        <button>✏ Editar</button>
-
-        <button>🔄 Renovar</button>
-
-        <button>🗑 Eliminar</button>
+        {onDelete && (
+          <button
+            type="button"
+            className="button button--ghost button--sm"
+            onClick={onDelete}
+            title="Eliminar suscripción"
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   );
